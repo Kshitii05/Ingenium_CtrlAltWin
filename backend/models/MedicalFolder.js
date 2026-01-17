@@ -27,6 +27,12 @@ const MedicalFolder = sequelize.define('MedicalFolder', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  category: {
+    type: DataTypes.ENUM('records', 'bills', 'profile'),
+    allowNull: false,
+    defaultValue: 'records',
+    comment: 'Section where folder belongs: records, bills, or profile'
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

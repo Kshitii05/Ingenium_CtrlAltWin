@@ -25,10 +25,13 @@ function FarmerDashboard() {
 
   const fetchProfile = async () => {
     try {
+      console.log('Fetching farmer profile...');
       const response = await api.get('/farmer/profile');
+      console.log('Profile response:', response.data);
       setProfile(response.data.profile);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
+      console.error('Error response:', error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -66,16 +69,32 @@ function FarmerDashboard() {
           <h3>Farmer Profile</h3>
           <div className="info-grid">
             <div className="info-item">
-              <label>Farmer ID:</label>
-              <span>{profile?.farmer_id}</span>
+              <label>KYC ID:</label>
+              <span>{profile?.kyc_id}</span>
             </div>
             <div className="info-item">
               <label>Name:</label>
-              <span>{profile?.user?.name}</span>
+              <span>{profile?.full_name}</span>
+            </div>
+            <div className="info-item">
+              <label>Mobile:</label>
+              <span>{profile?.mobile}</span>
+            </div>
+            <div className="info-item">
+              <label>Email:</label>
+              <span>{profile?.email}</span>
+            </div>
+            <div className="info-item">
+              <label>State:</label>
+              <span>{profile?.state}</span>
             </div>
             <div className="info-item">
               <label>Land Area:</label>
-              <span>{profile?.land_area} acres</span>
+              <span>{profile?.land_area ? `${profile.land_area} acres` : 'Not specified'}</span>
+            </div>
+            <div className="info-item">
+              <label>Crop Type:</label>
+              <span>{profile?.crop_type || 'Not specified'}</span>
             </div>
             <div className="info-item">
               <label>KYC Status:</label>

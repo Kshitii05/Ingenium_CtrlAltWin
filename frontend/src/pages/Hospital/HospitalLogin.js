@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
+import '../User/Auth.css';
 
 function HospitalLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    hospital_name: '',
+    hfr_id: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,30 +46,32 @@ function HospitalLogin() {
         <div className="auth-card">
           <div className="auth-header">
             <h1>🏥 Hospital Login</h1>
-            <p>Access patient records and management</p>
+            <p>Access patient records and management system</p>
           </div>
 
           {error && <div className="alert alert-error">{error}</div>}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email</label>
+              <label>Registered Hospital Name</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="hospital_name"
+                value={formData.hospital_name}
                 onChange={handleChange}
+                placeholder="As per Ayushman Bharat Digital Mission"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label>Password</label>
+              <label>HFR Facility ID (Password)</label>
               <input
                 type="password"
-                name="password"
-                value={formData.password}
+                name="hfr_id"
+                value={formData.hfr_id}
                 onChange={handleChange}
+                placeholder="Health Facility Registry ID"
                 required
               />
             </div>

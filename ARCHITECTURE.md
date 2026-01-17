@@ -434,6 +434,128 @@ Login Credentials:
 └─────────────────────────────────────────────────────┘
 ```
 
+## 📁 Medical Document Management System
+
+### File Upload Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│         MEDICAL DOCUMENT MANAGEMENT SYSTEM               │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  📋 Medical Records & Documents                  │   │
+│  │  • Full folder organization                      │   │
+│  │  • Create/rename/delete folders                  │   │
+│  │  • Upload files to folders                       │   │
+│  │  • Download/delete files                         │   │
+│  │  • Sidebar folder navigation                     │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  👤 Profile Documents                            │   │
+│  │  • Medical reports                               │   │
+│  │  • Test results                                  │   │
+│  │  • Prescriptions                                 │   │
+│  │  • Health documents                              │   │
+│  └─────────────────────────────────────────────────┘   │
+│                                                          │
+│  ┌─────────────────────────────────────────────────┐   │
+│  │  💰 Bills & Insurance Documents                  │   │
+│  │  • Bill receipts                                 │   │
+│  │  • Insurance claims                              │   │
+│  │  • Payment proofs                                │   │
+│  │  • Related documents                             │   │
+│  └─────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────┘
+```
+
+### File Upload Specifications
+
+**Allowed File Types:**
+- Documents: PDF (.pdf), Word (.doc, .docx)
+- Images: JPEG (.jpg, .jpeg), PNG (.png)
+
+**File Size Limit:** 10MB per file
+
+**Storage Location:** `uploads/medical-files/`
+
+**File Naming:** Unique timestamp-based naming to prevent conflicts
+
+### Backend API Endpoints
+
+```
+POST   /api/medical/folders              Create new folder
+GET    /api/medical/folders              List all folders
+PUT    /api/medical/folders/:id          Rename folder
+DELETE /api/medical/folders/:id          Delete folder
+
+POST   /api/medical/files                Upload file
+GET    /api/medical/files                List files (optional ?folderId=X)
+GET    /api/medical/files/:id/download   Download file
+DELETE /api/medical/files/:id            Delete file
+```
+
+### Database Tables
+
+**medical_folders:**
+- id (Primary Key)
+- medical_account_id (Foreign Key → medical_accounts)
+- folder_name (varchar 255)
+- parent_id (Foreign Key → medical_folders, nullable for root folders)
+- created_at (timestamp)
+
+**medical_files:**
+- id (Primary Key)
+- medical_account_id (Foreign Key → medical_accounts)
+- folder_id (Foreign Key → medical_folders, nullable)
+- file_name (varchar 255)
+- file_type (varchar 50)
+- file_path (varchar 500)
+- file_size (integer, bytes)
+- uploaded_by (enum: 'user', 'hospital')
+- uploaded_by_id (integer, user or hospital ID)
+- is_immutable (boolean, default true)
+- created_at (timestamp)
+
+### Frontend Components
+
+**MedicalRecords.js** - Full folder/file management
+- Sidebar with folder tree
+- Create/delete folders
+- Upload files to folders
+- File grid with download/delete actions
+- Responsive design
+
+**MedicalBills.js** - Bill document uploads
+- Upload bill receipts and insurance documents
+- File grid display with download/delete
+- Integrated with existing bill tracking
+
+**MedicalProfile.js** - Profile document uploads
+- Upload medical reports, test results, prescriptions
+- File grid display with download/delete
+- Integrated with existing profile management
+
+### Security Features
+
+✅ **Authentication:** All endpoints require valid JWT token
+✅ **Authorization:** Users can only access their own files
+✅ **File Validation:** Type and size restrictions enforced
+✅ **Immutable Records:** Files cannot be edited once uploaded
+✅ **Audit Trail:** Upload actions logged with timestamp and uploader
+
+### User Experience
+
+- **Drag-and-drop** style upload interface (click to select)
+- **Real-time feedback** on upload progress
+- **File icons** based on file type (📄 PDF, 📝 DOC, 🖼️ Image)
+- **File size display** in human-readable format (KB, MB)
+- **Date formatting** with time information
+- **Confirmation dialogs** before deleting files/folders
+- **Success/error messages** for all operations
+
+
+
 ## 🔑 Authentication Models
 
 ### User Authentication

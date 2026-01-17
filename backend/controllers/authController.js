@@ -110,27 +110,34 @@ exports.userRegister = async (req, res) => {
 // Hospital Login
 exports.hospitalLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { hospital_name, hfr_id } = req.body;
 
-    const hospital = await Hospital.findOne({ where: { email } });
-    if (!hospital) {
-      return res.status(401).json({
+    if (!hospital_name || !hfr_id) {
+      return res.status(400).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Hospital name and HFR ID are required'
       });
     }
 
-    const isMatch = await hospital.comparePassword(password);
+    const hospital = await Hospital.findOne({ where: { hospital_name } });
+    if (!hospital) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid hospital name or HFR ID'
+      });
+    }
+
+    const isMatch = await hospital.comparePassword(hfr_id);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid hospital name or HFR ID'
       });
     }
 
     const token = generateToken({
       id: hospital.id,
-      email: hospital.email,
+      hospital_name: hospital.hospital_name,
       type: 'hospital'
     });
 
@@ -141,7 +148,8 @@ exports.hospitalLogin = async (req, res) => {
       hospital: {
         id: hospital.id,
         hospital_name: hospital.hospital_name,
-        email: hospital.email
+        email: hospital.email,
+        phone: hospital.phone
       }
     });
   } catch (error) {
@@ -156,29 +164,49 @@ exports.hospitalLogin = async (req, res) => {
 // Hospital Registration
 exports.hospitalRegister = async (req, res) => {
   try {
-    const { hospital_name, facility_id, registration_number, email, password, phone, address, specializations } = req.body;
+    const { hospital_name, hfr_id, email, phone, address, specializations } = req.body;
 
-    const existingHospital = await Hospital.findOne({ where: { email } });
+    if (!hospital_name || !hfr_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Hospital name and HFR ID are required'
+      });
+    }
+
+    const existingHospital = await Hospital.findOne({ where: { hospital_name } });
     if (existingHospital) {
+      return res.status(400).json({
+        success: false,
+        message: 'Hospital already exists with this name'
+      });
+    }
+
+    const existingEmail = await Hospital.findOne({ where: { email } });
+    if (existingEmail) {
       return res.status(400).json({
         success: false,
         message: 'Hospital already exists with this email'
       });
     }
 
+    // Generate unique hospital ID
+    const hospital_unique_id = `HSP-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+
     const hospital = await Hospital.create({
-      hospital_name,      facility_id,      registration_number,
+      hospital_name,
+      hfr_id,
+      password_hash: hfr_id, // HFR ID is the password
+      hospital_unique_id,
       email,
-      password_hash: password,
       phone,
       address,
-      specializations,
+      specializations: Array.isArray(specializations) ? specializations : [],
       is_verified: true
     });
 
     const token = generateToken({
       id: hospital.id,
-      email: hospital.email,
+      hospital_name: hospital.hospital_name,
       type: 'hospital'
     });
 
@@ -189,6 +217,7 @@ exports.hospitalRegister = async (req, res) => {
       hospital: {
         id: hospital.id,
         hospital_name: hospital.hospital_name,
+        hospital_unique_id: hospital.hospital_unique_id,
         email: hospital.email
       }
     });

@@ -94,9 +94,10 @@ exports.registerFarmerKYC = async (req, res) => {
     });
 
     if (existingEmail) {
+      console.log('Email conflict:', { email, existing_kyc_id: existingEmail.kyc_id });
       return res.status(400).json({
         success: false,
-        message: 'Email already registered'
+        message: `Email already registered. If this is your account, please use the login page with your KYC ID: ${existingEmail.kyc_id}`
       });
     }
 
@@ -213,11 +214,14 @@ exports.loginFarmer = async (req, res) => {
 // Get Farmer Profile
 exports.getFarmerProfile = async (req, res) => {
   try {
+    console.log('Getting farmer profile for:', req.farmer);
     const farmerId = req.farmer.id;
 
     const farmer = await FarmerAccount.findByPk(farmerId, {
       attributes: { exclude: ['password_hash'] }
     });
+
+    console.log('Found farmer:', farmer ? farmer.toJSON() : null);
 
     if (!farmer) {
       return res.status(404).json({

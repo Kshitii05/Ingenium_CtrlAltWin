@@ -35,6 +35,7 @@ MedicalAccount.hasMany(MedicalFile, { foreignKey: 'medical_account_id', as: 'fil
 Hospital.hasMany(HospitalAccess, { foreignKey: 'hospital_id', as: 'patientAccess' });
 Hospital.hasMany(MedicalRecord, { foreignKey: 'hospital_id', as: 'uploadedRecords' });
 Hospital.hasMany(MedicalBill, { foreignKey: 'hospital_id', as: 'bills' });
+Hospital.hasMany(MedicalFile, { foreignKey: 'hospital_id', as: 'uploadedFiles' });
 
 // HospitalAccess relationships
 HospitalAccess.belongsTo(MedicalAccount, { foreignKey: 'medical_account_id', as: 'medicalAccount' });
@@ -76,6 +77,7 @@ MedicalFolder.hasMany(MedicalFile, { foreignKey: 'folder_id', as: 'files' });
 // MedicalFile relationships
 MedicalFile.belongsTo(MedicalAccount, { foreignKey: 'medical_account_id', as: 'medicalAccount' });
 MedicalFile.belongsTo(MedicalFolder, { foreignKey: 'folder_id', as: 'folder' });
+MedicalFile.belongsTo(Hospital, { foreignKey: 'hospital_id', as: 'hospital' });
 
 module.exports = {
   sequelize,

@@ -10,7 +10,6 @@ const User = sequelize.define('User', {
   },
   aadhaar_number: {
     type: DataTypes.STRING(12),
-    unique: true,
     allowNull: false
   },
   name: {

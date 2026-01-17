@@ -10,26 +10,29 @@ const Hospital = sequelize.define('Hospital', {
   },
   hospital_name: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    allowNull: false,
+    unique: true,
+    comment: 'Registered Hospital Name from Ayushman Bharat Digital Mission'
+  },
+  hfr_id: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+    comment: 'Health Facility Registry (HFR) ID - used as password'
+  },
+  password_hash: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    comment: 'Hashed HFR ID'
   },
   hospital_unique_id: {
     type: DataTypes.STRING(100),
     unique: true,
-    allowNull: false,
-    comment: 'Hospital Unique ID for login (replaces registration_number)'
-  },
-  facility_id: {
-    type: DataTypes.STRING(100),
     allowNull: true,
-    comment: 'Health Facility Registry ID'
+    comment: 'Auto-generated unique ID for hospital'
   },
   email: {
     type: DataTypes.STRING(255),
     unique: true,
-    allowNull: false
-  },
-  password_hash: {
-    type: DataTypes.STRING(255),
     allowNull: false
   },
   phone: {

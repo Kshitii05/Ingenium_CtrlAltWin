@@ -8,7 +8,7 @@ function HospitalRegister() {
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     hospital_name: '',
-    facility_id: '',
+    hfr_id: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -81,8 +81,8 @@ function HospitalRegister() {
               <label>Facility ID (HFR)</label>
               <input
                 type="text"
-                name="facility_id"
-                value={formData.facility_id}
+                name="hfr_id"
+                value={formData.hfr_id}
                 onChange={handleChange}
                 required
                 placeholder="Health Facility Registry ID"

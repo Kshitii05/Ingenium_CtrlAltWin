@@ -14,9 +14,15 @@ fs.mkdir(UPLOAD_DIR, { recursive: true }).catch(console.error);
 exports.getFolders = async (req, res) => {
   try {
     const medicalAccountId = req.medicalUser.id;
+    const { category } = req.query;
+
+    const where = { medical_account_id: medicalAccountId };
+    if (category) {
+      where.category = category;
+    }
 
     const folders = await MedicalFolder.findAll({
-      where: { medical_account_id: medicalAccountId },
+      where,
       order: [['folder_name', 'ASC']]
     });
 
@@ -47,10 +53,15 @@ exports.getFolders = async (req, res) => {
 exports.createFolder = async (req, res) => {
   try {
     const medicalAccountId = req.medicalUser.id;
-    const { folder_name, parent_id } = req.body;
+    const { folder_name, parent_id, category } = req.body;
 
     if (!folder_name || folder_name.trim().length === 0) {
       return res.status(400).json({ error: 'Folder name is required' });
+    }
+
+    const folderCategory = category || 'records';
+    if (!['records', 'bills', 'profile'].includes(folderCategory)) {
+      return res.status(400).json({ error: 'Invalid category' });
     }
 
     // Validate parent folder exists if provided
@@ -79,7 +90,8 @@ exports.createFolder = async (req, res) => {
     const folder = await MedicalFolder.create({
       medical_account_id: medicalAccountId,
       folder_name: folder_name.trim(),
-      parent_id: parent_id || null
+      parent_id: parent_id || null,
+      category: folderCategory
     });
 
     res.status(201).json({
@@ -190,9 +202,13 @@ exports.deleteFolder = async (req, res) => {
 exports.getFiles = async (req, res) => {
   try {
     const medicalAccountId = req.medicalUser.id;
-    const { folder_id } = req.query;
+    const { folder_id, category } = req.query;
 
     const where = { medical_account_id: medicalAccountId };
+    
+    if (category) {
+      where.category = category;
+    }
     
     if (folder_id) {
       where.folder_id = folder_id;
@@ -226,7 +242,7 @@ exports.getFiles = async (req, res) => {
 exports.uploadFile = async (req, res) => {
   try {
     const medicalAccountId = req.medicalUser.id;
-    const { folder_id } = req.body;
+    const { folder_id, category } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -252,9 +268,16 @@ exports.uploadFile = async (req, res) => {
       return res.status(400).json({ error: 'File type not allowed. Allowed: PDF, DOC, DOCX, JPG, PNG' });
     }
 
+    const fileCategory = category || 'records';
+    if (!['records', 'bills', 'profile'].includes(fileCategory)) {
+      await fs.unlink(req.file.path);
+      return res.status(400).json({ error: 'Invalid category' });
+    }
+
     const file = await MedicalFile.create({
       medical_account_id: medicalAccountId,
       folder_id: folder_id || null,
+      category: fileCategory,
       file_name: req.file.originalname,
       file_type: req.file.mimetype,
       file_path: req.file.path,

@@ -23,6 +23,12 @@ const MedicalFile = sequelize.define('MedicalFile', {
       key: 'id'
     }
   },
+  category: {
+    type: DataTypes.ENUM('records', 'bills', 'profile'),
+    allowNull: false,
+    defaultValue: 'records',
+    comment: 'Section where file belongs: records, bills, or profile'
+  },
   file_name: {
     type: DataTypes.STRING(255),
     allowNull: false
@@ -47,6 +53,45 @@ const MedicalFile = sequelize.define('MedicalFile', {
   uploaded_by_id: {
     type: DataTypes.INTEGER,
     comment: 'ID of user or hospital who uploaded'
+  },
+  hospital_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'hospitals',
+      key: 'id'
+    },
+    comment: 'Foreign key to hospitals table if uploaded by hospital'
+  },
+  hospital_name: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Hospital name for display purposes'
+  },
+  document_title: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Title of the document'
+  },
+  document_type: {
+    type: DataTypes.ENUM('Report', 'Prescription', 'Bill', 'Summary', 'Lab Report', 'Imaging', 'Other'),
+    allowNull: true,
+    comment: 'Type of medical document'
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Additional notes or description'
+  },
+  visibility_to_hospital: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: 'Whether hospitals can view this file (for patient uploads)'
+  },
+  visibility_to_patient: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: 'Whether patient can view this file (always true for hospital uploads)'
   },
   is_immutable: {
     type: DataTypes.BOOLEAN,
