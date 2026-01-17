@@ -32,13 +32,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/medical', require('./routes/medicalRoutes'));
-app.use('/api/medical', require('./routes/medicalFileRoutes'));
-app.use('/api/farmer', require('./routes/farmerRoutes'));
-app.use('/api/farmer', require('./routes/farmerKYCRoutes'));
-app.use('/api/government', require('./routes/governmentRoutes'));
-app.use('/api/hospital', require('./routes/hospitalRoutes'));
+app.use('/api/auth', require('./routes/auth/authRoutes'));
+app.use('/api/medical', require('./routes/medical/medicalRoutes'));
+app.use('/api/medical', require('./routes/medical/medicalFileRoutes'));
+app.use('/api/farmer', require('./routes/farmer/farmerRoutes'));
+app.use('/api/farmer', require('./routes/farmer/farmerKYCRoutes'));
+app.use('/api/government', require('./routes/auth/governmentRoutes'));
+app.use('/api/hospital', require('./routes/auth/hospitalRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

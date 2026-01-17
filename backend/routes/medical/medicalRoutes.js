@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const medicalController = require('../controllers/medicalController');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth');
+const medicalController = require('../../controllers/medicalController');
+const { authMiddleware, roleMiddleware } = require('../../middleware/auth');
 
 // Check if medical account exists (requires user login)
 router.get('/account/status', authMiddleware, roleMiddleware('user'), medicalController.checkAccountStatus);

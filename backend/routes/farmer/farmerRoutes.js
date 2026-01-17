@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const farmerController = require('../controllers/farmerController');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth');
+const farmerController = require('../../controllers/farmerController');
+const { authMiddleware, roleMiddleware } = require('../../middleware/auth');
 
 // All farmer routes require user login
 router.get('/account/status', authMiddleware, roleMiddleware('user'), farmerController.checkAccountStatus);

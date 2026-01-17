@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const farmerKYCController = require('../controllers/farmerKYCController');
-const { authFarmer } = require('../middleware/auth');
+const farmerKYCController = require('../../controllers/farmerKYCController');
+const { authFarmer } = require('../../middleware/auth');
 
 // Public routes
 router.post('/kyc-register', farmerKYCController.registerFarmerKYC);

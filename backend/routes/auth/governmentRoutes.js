@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const governmentController = require('../controllers/governmentController');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth');
+const governmentController = require('../../controllers/governmentController');
+const { authMiddleware, roleMiddleware } = require('../../middleware/auth');
 
 // All government routes require government login
 router.get('/dashboard', authMiddleware, roleMiddleware('government'), governmentController.getGovernmentDashboard);

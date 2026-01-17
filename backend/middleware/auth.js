@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 // General auth middleware
 const authMiddleware = (req, res, next) => {
   try {
+    
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {

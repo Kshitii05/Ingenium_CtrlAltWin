@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const hospitalController = require('../controllers/hospitalController');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth');
+const hospitalController = require('../../controllers/hospitalController');
+const { authMiddleware, roleMiddleware } = require('../../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../uploads/medical-files');
+const uploadDir = path.join(__dirname, '../../../uploads/medical-files');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log('✅ Created hospital files upload directory');
