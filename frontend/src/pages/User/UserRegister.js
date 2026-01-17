@@ -46,7 +46,6 @@ function UserRegister() {
 
     try {
       const response = await api.post('/auth/user/register', {
-        ...formData,
         aadhaar_number: formData.aadhaar_number,
         name: formData.name,
         dob: formData.dob,
@@ -63,6 +62,7 @@ function UserRegister() {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
@@ -189,7 +189,7 @@ function UserRegister() {
           </form>
 
           <div className="auth-footer">
-            <p>Already have an account? <Link to="/user/login">Login</Link></p>
+            <p>Already have an account? <Link to="/user/login">Sign in here</Link></p>
             <Link to="/">← Back to Home</Link>
           </div>
         </div>

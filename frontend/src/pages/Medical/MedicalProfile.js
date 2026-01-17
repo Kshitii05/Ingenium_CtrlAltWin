@@ -8,11 +8,15 @@ function MedicalProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
+    gender: '',
     allergies: '',
     chronic_conditions: '',
     current_medications: '',
+    past_surgeries: '',
+    disabilities: '',
     emergency_contact_name: '',
     emergency_contact_phone: '',
+    emergency_contact_relation: '',
     blood_group: ''
   });
   const [editing, setEditing] = useState(false);
@@ -32,11 +36,15 @@ function MedicalProfile() {
       const response = await api.get('/medical/profile');
       setProfile(response.data.profile);
       setFormData({
+        gender: response.data.profile.gender || '',
         allergies: response.data.profile.allergies || '',
         chronic_conditions: response.data.profile.chronic_conditions || '',
         current_medications: response.data.profile.current_medications || '',
+        past_surgeries: response.data.profile.past_surgeries || '',
+        disabilities: response.data.profile.disabilities || '',
         emergency_contact_name: response.data.profile.emergency_contact_name || '',
         emergency_contact_phone: response.data.profile.emergency_contact_phone || '',
+        emergency_contact_relation: response.data.profile.emergency_contact_relation || '',
         blood_group: response.data.profile.blood_group || ''
       });
     } catch (error) {
@@ -118,6 +126,16 @@ function MedicalProfile() {
           {editing ? (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+                <label>Gender</label>
+                <select name="gender" value={formData.gender} onChange={handleChange}>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>Blood Group</label>
                 <select name="blood_group" value={formData.blood_group} onChange={handleChange}>
                   <option value="">Select Blood Group</option>
@@ -166,6 +184,28 @@ function MedicalProfile() {
               </div>
 
               <div className="form-group">
+                <label>Past Surgeries</label>
+                <textarea
+                  name="past_surgeries"
+                  value={formData.past_surgeries}
+                  onChange={handleChange}
+                  rows="3"
+                  placeholder="List any past surgeries..."
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Disabilities</label>
+                <textarea
+                  name="disabilities"
+                  value={formData.disabilities}
+                  onChange={handleChange}
+                  rows="3"
+                  placeholder="List any disabilities..."
+                />
+              </div>
+
+              <div className="form-group">
                 <label>Emergency Contact Name</label>
                 <input
                   type="text"
@@ -185,6 +225,17 @@ function MedicalProfile() {
                 />
               </div>
 
+              <div className="form-group">
+                <label>Emergency Contact Relation</label>
+                <input
+                  type="text"
+                  name="emergency_contact_relation"
+                  value={formData.emergency_contact_relation}
+                  onChange={handleChange}
+                  placeholder="e.g., Spouse, Parent, Sibling"
+                />
+              </div>
+
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="submit" className="btn btn-primary">Save Changes</button>
                 <button type="button" onClick={() => setEditing(false)} className="btn btn-secondary">
@@ -194,6 +245,10 @@ function MedicalProfile() {
             </form>
           ) : (
             <div className="info-grid">
+              <div className="info-item">
+                <label>Gender:</label>
+                <span>{profile?.gender || 'Not set'}</span>
+              </div>
               <div className="info-item">
                 <label>Blood Group:</label>
                 <span>{profile?.blood_group || 'Not set'}</span>
@@ -211,12 +266,24 @@ function MedicalProfile() {
                 <span>{profile?.current_medications || 'None'}</span>
               </div>
               <div className="info-item">
+                <label>Past Surgeries:</label>
+                <span>{profile?.past_surgeries || 'None'}</span>
+              </div>
+              <div className="info-item">
+                <label>Disabilities:</label>
+                <span>{profile?.disabilities || 'None'}</span>
+              </div>
+              <div className="info-item">
                 <label>Emergency Contact:</label>
                 <span>{profile?.emergency_contact_name || 'Not set'}</span>
               </div>
               <div className="info-item">
                 <label>Emergency Phone:</label>
                 <span>{profile?.emergency_contact_phone || 'Not set'}</span>
+              </div>
+              <div className="info-item">
+                <label>Emergency Relation:</label>
+                <span>{profile?.emergency_contact_relation || 'Not set'}</span>
               </div>
             </div>
           )}

@@ -34,13 +34,34 @@ function MedicalRecords() {
 
   const getRecordTypeBadge = (type) => {
     const badges = {
-      lab_report: 'badge-info',
-      prescription: 'badge-success',
-      diagnosis: 'badge-warning',
-      scan: 'badge-danger',
-      other: 'badge-info'
+      'Clinical': 'badge-info',
+      'Diagnostic': 'badge-success',
+      'Imaging': 'badge-warning',
+      'Prescriptions': 'badge-danger',
+      'Hospitalization': 'badge-primary',
+      'Emergency': 'badge-danger',
+      'Preventive': 'badge-success',
+      'Chronic': 'badge-warning',
+      'Mental Health': 'badge-info',
+      'Legal': 'badge-secondary'
     };
     return badges[type] || 'badge-info';
+  };
+
+  const getRecordIcon = (type) => {
+    const icons = {
+      'Clinical': '🩺',
+      'Diagnostic': '🔬',
+      'Imaging': '📷',
+      'Prescriptions': '💊',
+      'Hospitalization': '🏥',
+      'Emergency': '🚨',
+      'Preventive': '💚',
+      'Chronic': '📋',
+      'Mental Health': '🧠',
+      'Legal': '⚖️'
+    };
+    return icons[type] || '📄';
   };
 
   return (
@@ -79,7 +100,7 @@ function MedicalRecords() {
                   <tr key={record.id}>
                     <td>
                       <span className={`badge ${getRecordTypeBadge(record.record_type)}`}>
-                        {record.record_type.replace('_', ' ')}
+                        {getRecordIcon(record.record_type)} {record.record_type}
                       </span>
                     </td>
                     <td><strong>{record.title}</strong></td>

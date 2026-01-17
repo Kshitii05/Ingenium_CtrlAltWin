@@ -32,6 +32,14 @@ const MedicalAccount = sequelize.define('MedicalAccount', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  gender: {
+    type: DataTypes.ENUM('Male', 'Female', 'Other'),
+    allowNull: true
+  },
+  blood_group: {
+    type: DataTypes.STRING(5),
+    allowNull: true
+  },
   allergies: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -44,6 +52,14 @@ const MedicalAccount = sequelize.define('MedicalAccount', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  past_surgeries: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  disabilities: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   emergency_contact_name: {
     type: DataTypes.STRING(255),
     allowNull: true
@@ -52,8 +68,8 @@ const MedicalAccount = sequelize.define('MedicalAccount', {
     type: DataTypes.STRING(15),
     allowNull: true
   },
-  blood_group: {
-    type: DataTypes.STRING(5),
+  emergency_contact_relation: {
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   is_active: {
@@ -69,20 +85,29 @@ const MedicalAccount = sequelize.define('MedicalAccount', {
   timestamps: false
 });
 
-// Generate medical ID before creating
-MedicalAccount.beforeCreate(async (account) => {
-  account.medical_id = `MED-USR-${uuidv4().substring(0, 8).toUpperCase()}`;
-  if (account.password_hash) {
+// Hooks must be defined with specific hook options
+MedicalAccount.addHook('beforeValidate', async (account) => {
+  // Generate medical ID if not exists
+  if (!account.medical_id) {
+    account.medical_id = `MED-USR-${uuidv4().substring(0, 8).toUpperCase()}`;
+  }
+});
+
+MedicalAccount.addHook('beforeCreate', async (account) => {
+  // Hash password if provided
+  if (account.password_hash && !account.password_hash.startsWith('$2b$')) {
     account.password_hash = await bcrypt.hash(account.password_hash, 10);
   }
 });
 
-MedicalAccount.beforeUpdate(async (account) => {
-  if (account.changed('password_hash')) {
+MedicalAccount.addHook('beforeUpdate', async (account) => {
+  // Hash password if changed
+  if (account.changed('password_hash') && !account.password_hash.startsWith('$2b$')) {
     account.password_hash = await bcrypt.hash(account.password_hash, 10);
   }
 });
 
+// Instance method to compare passwords
 MedicalAccount.prototype.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password_hash);
 };

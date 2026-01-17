@@ -53,6 +53,24 @@ function EntitySelection() {
 
         <div className="entity-footer">
           <p>Secure • Private • Transparent</p>
+          <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
+            <p style={{ marginBottom: '10px', fontSize: '14px' }}>New Farmer Registration:</p>
+            <button 
+              onClick={() => navigate('/farmer/register')}
+              style={{
+                padding: '12px 24px',
+                background: '#27ae60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600'
+              }}
+            >
+              🌾 Register as Farmer (KYC)
+            </button>
+          </div>
         </div>
       </div>
     </div>

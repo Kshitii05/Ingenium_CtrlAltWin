@@ -16,7 +16,7 @@ const MedicalRecord = sequelize.define('MedicalRecord', {
     }
   },
   record_type: {
-    type: DataTypes.ENUM('lab_report', 'prescription', 'diagnosis', 'scan', 'other'),
+    type: DataTypes.ENUM('Clinical', 'Diagnostic', 'Imaging', 'Prescriptions', 'Hospitalization', 'Emergency', 'Preventive', 'Chronic', 'Mental Health', 'Legal'),
     allowNull: false
   },
   title: {

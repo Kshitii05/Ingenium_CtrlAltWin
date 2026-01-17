@@ -7,7 +7,6 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth');
 router.get('/account/status', authMiddleware, roleMiddleware('user'), medicalController.checkAccountStatus);
 
 // Create medical account (requires user login)
-router.post('/account/initiate', authMiddleware, roleMiddleware('user'), medicalController.initiateAccountCreation);
 router.post('/account/create', authMiddleware, roleMiddleware('user'), medicalController.createMedicalAccount);
 
 // Medical account login (separate from user login)

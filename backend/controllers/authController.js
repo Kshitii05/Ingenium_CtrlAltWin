@@ -156,7 +156,7 @@ exports.hospitalLogin = async (req, res) => {
 // Hospital Registration
 exports.hospitalRegister = async (req, res) => {
   try {
-    const { hospital_name, registration_number, email, password, phone, address, specializations } = req.body;
+    const { hospital_name, facility_id, registration_number, email, password, phone, address, specializations } = req.body;
 
     const existingHospital = await Hospital.findOne({ where: { email } });
     if (existingHospital) {
@@ -167,8 +167,7 @@ exports.hospitalRegister = async (req, res) => {
     }
 
     const hospital = await Hospital.create({
-      hospital_name,
-      registration_number,
+      hospital_name,      facility_id,      registration_number,
       email,
       password_hash: password,
       phone,

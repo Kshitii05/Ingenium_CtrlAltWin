@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Medical Module API Test</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 5px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        input { padding: 8px; margin: 5px; width: 300px; }
+        .section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Medical Module API Tester</h1>
+    
+    <div class="section">
+        <h2>1. User Registration & Login</h2>
+        <input type="email" id="userEmail" placeholder="User Email" value="testuser@example.com">
+        <input type="password" id="userPassword" placeholder="Password" value="password123"><br>
+        <input type="text" id="userName" placeholder="Name" value="Test User">
+        <input type="text" id="aadhaar" placeholder="Aadhaar" value="123456789012"><br>
+        <button onclick="registerUser()">Register User</button>
+        <button onclick="loginUser()">Login User</button>
+        <div id="userResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Medical Account Check</h2>
+        <button onclick="checkMedicalAccount()">Check Medical Account Status</button>
+        <div id="medicalCheckResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Create Medical Account</h2>
+        <input type="email" id="medicalEmail" placeholder="Medical Email" value="medical@test.com">
+        <input type="password" id="medicalPassword" placeholder="Password" value="password123"><br>
+        <button onclick="createMedicalAccount()">Create Medical Account</button>
+        <div id="medicalCreateResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Medical Login</h2>
+        <button onclick="medicalLogin()">Medical Login</button>
+        <div id="medicalLoginResult" class="result"></div>
+    </div>
+
+    <script>
+        let userToken = '';
+        let medicalToken = '';
+        const API_URL = 'http://localhost:5000/api';
+
+        async function registerUser() {
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('userEmail').value,
+                        password: document.getElementById('userPassword').value,
+                        name: document.getElementById('userName').value,
+                        aadhaar_number: document.getElementById('aadhaar').value,
+                        dob: '1990-01-01',
+                        gender: 'Male',
+                        phone: '9876543210',
+                        address: 'Test Address'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('userResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                document.getElementById('userResult').className = response.ok ? 'result success' : 'result error';
+            } catch (error) {
+                document.getElementById('userResult').innerHTML = `Error: ${error.message}`;
+                document.getElementById('userResult').className = 'result error';
+            }
+        }
+
+        async function loginUser() {
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('userEmail').value,
+                        password: document.getElementById('userPassword').value
+                    })
+                });
+                const data = await response.json();
+                if (data.token) {
+                    userToken = data.token;
+                    localStorage.setItem('token', userToken);
+                }
+                document.getElementById('userResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                document.getElementById('userResult').className = response.ok ? 'result success' : 'result error';
+            } catch (error) {
+                document.getElementById('userResult').innerHTML = `Error: ${error.message}`;
+                document.getElementById('userResult').className = 'result error';
+            }
+        }
+
+        async function checkMedicalAccount() {
+            try {
+                const response = await fetch(`${API_URL}/medical/account/status`, {
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken || localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('medicalCheckResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                document.getElementById('medicalCheckResult').className = response.ok ? 'result success' : 'result error';
+            } catch (error) {
+                document.getElementById('medicalCheckResult').innerHTML = `Error: ${error.message}`;
+                document.getElementById('medicalCheckResult').className = 'result error';
+            }
+        }
+
+        async function createMedicalAccount() {
+            try {
+                const response = await fetch(`${API_URL}/medical/account/create`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${userToken || localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('medicalEmail').value,
+                        password: document.getElementById('medicalPassword').value,
+                        blood_group: 'O+'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('medicalCreateResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                document.getElementById('medicalCreateResult').className = response.ok ? 'result success' : 'result error';
+            } catch (error) {
+                document.getElementById('medicalCreateResult').innerHTML = `Error: ${error.message}`;
+                document.getElementById('medicalCreateResult').className = 'result error';
+            }
+        }
+
+        async function medicalLogin() {
+            try {
+                const response = await fetch(`${API_URL}/medical/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('medicalEmail').value,
+                        password: document.getElementById('medicalPassword').value
+                    })
+                });
+                const data = await response.json();
+                if (data.token) {
+                    medicalToken = data.token;
+                }
+                document.getElementById('medicalLoginResult').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                document.getElementById('medicalLoginResult').className = response.ok ? 'result success' : 'result error';
+            } catch (error) {
+                document.getElementById('medicalLoginResult').innerHTML = `Error: ${error.message}`;
+                document.getElementById('medicalLoginResult').className = 'result error';
+            }
+        }
+    </script>
+</body>
+</html>

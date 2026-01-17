@@ -28,7 +28,7 @@ exports.checkAccountStatus = async (req, res) => {
   }
 };
 
-// Create Farmer Account
+// Create Farmer Account (Basic - for existing users)
 exports.createFarmerAccount = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -46,28 +46,49 @@ exports.createFarmerAccount = async (req, res) => {
       });
     }
 
-    const farmerId = `FRM-${uuidv4().substring(0, 8).toUpperCase()}`;
+    // Get user details
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Create username from user data
+    const username = user.name.toLowerCase().replace(/\s+/g, '') + userId;
 
     const farmerAccount = await FarmerAccount.create({
       user_id: userId,
-      farmer_id: farmerId,
-      land_area,
-      land_location,
-      crop_types,
-      bank_account,
-      bank_ifsc
+      username: username,
+      password_hash: 'temp_password_' + Date.now(), // Temporary password
+      full_name: user.name,
+      aadhaar: user.aadhaar_number || '000000000000', // Fallback if not available
+      mobile: user.phone ? user.phone.substring(0, 10) : '0000000000',
+      email: user.email || null,
+      state: 'Unknown', // Will be updated later
+      land_area: land_area || null,
+      crop_type: crop_types || null,
+      bank_account: bank_account || null,
+      bank_ifsc: bank_ifsc || null,
+      bank_name: 'Not Specified',
+      kyc_status: 'pending'
     });
 
     res.status(201).json({
       success: true,
       message: 'Farmer account created successfully',
-      account: farmerAccount
+      account: {
+        id: farmerAccount.id,
+        kyc_id: farmerAccount.kyc_id,
+        full_name: farmerAccount.full_name
+      }
     });
   } catch (error) {
     console.error('Create farmer account error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create farmer account'
+      message: error.message || 'Failed to create farmer account'
     });
   }
 };

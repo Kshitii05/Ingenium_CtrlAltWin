@@ -6,16 +6,18 @@ import api from '../../utils/api';
 function MedicalAccountCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [step, setStep] = useState('check'); // check, create, otp
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    otp: ''
+    blood_group: '',
+    allergies: '',
+    chronic_conditions: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     checkAccountStatus();
@@ -26,10 +28,7 @@ function MedicalAccountCreate() {
       const response = await api.get('/medical/account/status');
       
       if (response.data.exists) {
-        // Account exists, redirect to medical login
         navigate('/medical/login');
-      } else {
-        setStep('create');
       }
     } catch (err) {
       setError('Failed to check account status');
@@ -43,10 +42,9 @@ function MedicalAccountCreate() {
     });
   };
 
-  const handleSendOTP = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setMessage('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -56,56 +54,30 @@ function MedicalAccountCreate() {
     setLoading(true);
 
     try {
-      const response = await api.post('/medical/account/initiate', {
-        email: formData.email,
-        password: formData.password
-      });
-
-      if (response.data.success) {
-        setMessage('OTP sent to your email!');
-        setStep('otp');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
       const response = await api.post('/medical/account/create', {
         email: formData.email,
         password: formData.password,
-        otp: formData.otp
+        blood_group: formData.blood_group,
+        allergies: formData.allergies,
+        chronic_conditions: formData.chronic_conditions,
+        emergency_contact_name: formData.emergency_contact_name,
+        emergency_contact_phone: formData.emergency_contact_phone
       });
 
       if (response.data.success) {
-        alert('✅ Medical account created successfully!');
+        alert('Medical account created successfully!');
         navigate('/medical/login');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to verify OTP');
+      setError(err.response?.data?.message || 'Failed to create medical account');
     } finally {
       setLoading(false);
     }
   };
 
-  if (step === 'check') {
-    return (
-      <div className="auth-page">
-        <div className="loading">Checking account status...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="auth-page">
-      <div className="auth-container">
+      <div className="auth-container" style={{ maxWidth: '700px' }}>
         <div className="auth-card">
           <div className="auth-header">
             <h1>🩺 Create Medical Account</h1>
@@ -113,91 +85,111 @@ function MedicalAccountCreate() {
           </div>
 
           {error && <div className="alert alert-error">{error}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
 
-          {step === 'create' && (
-            <form onSubmit={handleSendOTP}>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Create Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Create Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Confirm Password</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Confirm Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                {loading ? 'Sending OTP...' : 'Send OTP'}
-              </button>
-              
-              <button 
-                type="button" 
-                onClick={() => navigate('/user/dashboard')} 
-                className="btn btn-secondary btn-block"
-                style={{ marginTop: '10px' }}
-              >
-                Cancel
-              </button>
-            </form>
-          )}
+            <div className="form-group">
+              <label>Blood Group (Optional)</label>
+              <select name="blood_group" value={formData.blood_group} onChange={handleChange}>
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
 
-          {step === 'otp' && (
-            <form onSubmit={handleVerifyOTP}>
-              <div className="alert alert-info">
-                📩 We've sent a 6-digit OTP to {formData.email}
-              </div>
+            <div className="form-group">
+              <label>Allergies (Optional)</label>
+              <textarea
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleChange}
+                placeholder="List any allergies"
+                rows="2"
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Enter OTP</label>
-                <input
-                  type="text"
-                  name="otp"
-                  value={formData.otp}
-                  onChange={handleChange}
-                  maxLength="6"
-                  pattern="[0-9]{6}"
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Chronic Conditions (Optional)</label>
+              <textarea
+                name="chronic_conditions"
+                value={formData.chronic_conditions}
+                onChange={handleChange}
+                placeholder="List any chronic conditions"
+                rows="2"
+              />
+            </div>
 
-              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-                {loading ? 'Verifying...' : 'Verify & Create Account'}
-              </button>
+            <div className="form-group">
+              <label>Emergency Contact Name (Optional)</label>
+              <input
+                type="text"
+                name="emergency_contact_name"
+                value={formData.emergency_contact_name}
+                onChange={handleChange}
+              />
+            </div>
 
-              <button 
-                type="button" 
-                onClick={handleSendOTP} 
-                className="btn btn-secondary btn-block"
-                style={{ marginTop: '10px' }}
-              >
-                Resend OTP
-              </button>
-            </form>
-          )}
+            <div className="form-group">
+              <label>Emergency Contact Phone (Optional)</label>
+              <input
+                type="tel"
+                name="emergency_contact_phone"
+                value={formData.emergency_contact_phone}
+                onChange={handleChange}
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Medical Account'}
+            </button>
+            
+            <button 
+              type="button" 
+              onClick={() => navigate('/user/dashboard')} 
+              className="btn btn-secondary btn-block"
+              style={{ marginTop: '10px' }}
+            >
+              Cancel
+            </button>
+          </form>
         </div>
       </div>
     </div>

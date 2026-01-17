@@ -1,11 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 import './UserDashboard.css';
 
 function UserDashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user || user.type !== 'user') {
@@ -18,12 +20,35 @@ function UserDashboard() {
     navigate('/');
   };
 
+  const handleMedicalClick = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/medical/account/status', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.exists) {
+        // Medical account exists, go to login
+        navigate('/medical/login');
+      } else {
+        // No medical account, go to create
+        navigate('/medical/create');
+      }
+    } catch (error) {
+      console.error('Error checking medical account status:', error);
+      alert('Failed to check medical account status. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const modules = [
     {
       id: 'medical',
       title: '🩺 Medical Services',
       description: 'Access your healthcare records and manage hospital permissions',
-      route: '/medical/create',
+      onClick: handleMedicalClick,
       color: '#e74c3c'
     },
     {
@@ -56,8 +81,14 @@ function UserDashboard() {
             <div 
               key={module.id}
               className="module-card"
-              onClick={() => navigate(module.route)}
-              style={{ borderLeftColor: module.color }}
+              onClick={() => {
+                if (module.onClick) {
+                  module.onClick();
+                } else {
+                  navigate(module.route);
+                }
+              }}
+              style={{ borderLeftColor: module.color, cursor: loading ? 'wait' : 'pointer' }}
             >
               <div className="module-header">
                 <h2>{module.title}</h2>

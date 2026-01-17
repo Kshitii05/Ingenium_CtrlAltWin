@@ -8,6 +8,8 @@ const MedicalRecord = require('./MedicalRecord');
 const MedicalBill = require('./MedicalBill');
 const AuditLog = require('./AuditLog');
 const Hospital = require('./Hospital');
+const MedicalFolder = require('./MedicalFolder');
+const MedicalFile = require('./MedicalFile');
 const FarmerAccount = require('./FarmerAccount');
 const FarmerDocument = require('./FarmerDocument');
 const FarmerApplication = require('./FarmerApplication');
@@ -26,6 +28,8 @@ MedicalAccount.hasMany(HospitalAccess, { foreignKey: 'medical_account_id', as: '
 MedicalAccount.hasMany(MedicalRecord, { foreignKey: 'medical_account_id', as: 'medicalRecords' });
 MedicalAccount.hasMany(MedicalBill, { foreignKey: 'medical_account_id', as: 'medicalBills' });
 MedicalAccount.hasMany(AuditLog, { foreignKey: 'medical_account_id', as: 'auditLogs' });
+MedicalAccount.hasMany(MedicalFolder, { foreignKey: 'medical_account_id', as: 'folders' });
+MedicalAccount.hasMany(MedicalFile, { foreignKey: 'medical_account_id', as: 'files' });
 
 // Hospital relationships
 Hospital.hasMany(HospitalAccess, { foreignKey: 'hospital_id', as: 'patientAccess' });
@@ -63,6 +67,16 @@ FarmerApplication.belongsTo(GovernmentUser, { foreignKey: 'reviewed_by', as: 're
 // GovernmentUser relationships
 GovernmentUser.hasMany(FarmerApplication, { foreignKey: 'reviewed_by', as: 'reviewedApplications' });
 
+// MedicalFolder relationships
+MedicalFolder.belongsTo(MedicalAccount, { foreignKey: 'medical_account_id', as: 'medicalAccount' });
+MedicalFolder.belongsTo(MedicalFolder, { foreignKey: 'parent_id', as: 'parent' });
+MedicalFolder.hasMany(MedicalFolder, { foreignKey: 'parent_id', as: 'children' });
+MedicalFolder.hasMany(MedicalFile, { foreignKey: 'folder_id', as: 'files' });
+
+// MedicalFile relationships
+MedicalFile.belongsTo(MedicalAccount, { foreignKey: 'medical_account_id', as: 'medicalAccount' });
+MedicalFile.belongsTo(MedicalFolder, { foreignKey: 'folder_id', as: 'folder' });
+
 module.exports = {
   sequelize,
   User,
@@ -72,6 +86,8 @@ module.exports = {
   MedicalBill,
   AuditLog,
   Hospital,
+  MedicalFolder,
+  MedicalFile,
   FarmerAccount,
   FarmerDocument,
   FarmerApplication,

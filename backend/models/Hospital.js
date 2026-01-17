@@ -12,10 +12,16 @@ const Hospital = sequelize.define('Hospital', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  registration_number: {
+  hospital_unique_id: {
     type: DataTypes.STRING(100),
     unique: true,
-    allowNull: false
+    allowNull: false,
+    comment: 'Hospital Unique ID for login (replaces registration_number)'
+  },
+  facility_id: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    comment: 'Health Facility Registry ID'
   },
   email: {
     type: DataTypes.STRING(255),

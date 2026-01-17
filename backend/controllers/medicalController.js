@@ -30,10 +30,10 @@ exports.checkAccountStatus = async (req, res) => {
   }
 };
 
-// Initiate Medical Account Creation (Send OTP)
-exports.initiateAccountCreation = async (req, res) => {
+// Create Medical Account (Direct creation without OTP)
+exports.createMedicalAccount = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, blood_group, allergies, chronic_conditions, emergency_contact_name, emergency_contact_phone } = req.body;
     const userId = req.user.id;
 
     // Check if account already exists
@@ -60,37 +60,6 @@ exports.initiateAccountCreation = async (req, res) => {
       });
     }
 
-    // Send OTP
-    await sendOTP(email, 'medical_account_creation');
-
-    res.json({
-      success: true,
-      message: 'OTP sent to your email'
-    });
-  } catch (error) {
-    console.error('Initiate account creation error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send OTP'
-    });
-  }
-};
-
-// Verify OTP and Create Medical Account
-exports.createMedicalAccount = async (req, res) => {
-  try {
-    const { email, password, otp } = req.body;
-    const userId = req.user.id;
-
-    // Verify OTP
-    const otpVerification = await verifyOTP(email, otp, 'medical_account_creation');
-    if (!otpVerification.success) {
-      return res.status(400).json({
-        success: false,
-        message: otpVerification.message
-      });
-    }
-
     // Get user details
     const user = await User.findByPk(userId);
 
@@ -98,7 +67,13 @@ exports.createMedicalAccount = async (req, res) => {
     const medicalAccount = await MedicalAccount.create({
       user_id: userId,
       email,
-      password_hash: password
+      password_hash: password,
+      blood_group: blood_group || null,
+      allergies: allergies || null,
+      chronic_conditions: chronic_conditions || null,
+      emergency_contact_name: emergency_contact_name || null,
+      emergency_contact_phone: emergency_contact_phone || null,
+      is_active: true
     });
 
     // Create audit log
@@ -219,11 +194,15 @@ exports.getMedicalProfile = async (req, res) => {
       profile: {
         medical_id: medicalAccount.medical_id,
         email: medicalAccount.email,
+        gender: medicalAccount.gender,
         allergies: medicalAccount.allergies,
         chronic_conditions: medicalAccount.chronic_conditions,
         current_medications: medicalAccount.current_medications,
+        past_surgeries: medicalAccount.past_surgeries,
+        disabilities: medicalAccount.disabilities,
         emergency_contact_name: medicalAccount.emergency_contact_name,
         emergency_contact_phone: medicalAccount.emergency_contact_phone,
+        emergency_contact_relation: medicalAccount.emergency_contact_relation,
         blood_group: medicalAccount.blood_group,
         user: medicalAccount.user
       }
@@ -242,11 +221,15 @@ exports.updateMedicalProfile = async (req, res) => {
   try {
     const medicalAccountId = req.user.id;
     const {
+      gender,
       allergies,
       chronic_conditions,
       current_medications,
+      past_surgeries,
+      disabilities,
       emergency_contact_name,
       emergency_contact_phone,
+      emergency_contact_relation,
       blood_group
     } = req.body;
 
@@ -259,11 +242,15 @@ exports.updateMedicalProfile = async (req, res) => {
     }
 
     await medicalAccount.update({
+      gender,
       allergies,
       chronic_conditions,
       current_medications,
+      past_surgeries,
+      disabilities,
       emergency_contact_name,
       emergency_contact_phone,
+      emergency_contact_relation,
       blood_group
     });
 
@@ -292,28 +279,46 @@ exports.updateMedicalProfile = async (req, res) => {
 // Grant Hospital Access
 exports.grantHospitalAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.user.id;
-    const { hospital_id, access_scope, permissions, duration_days } = req.body;
+    const medicalAccountId = req.medicalUser.id;
+    const { hospital_identifier, scopes, permission_type, duration } = req.body;
 
-    // Check if hospital exists
-    const hospital = await Hospital.findByPk(hospital_id);
-    if (!hospital) {
-      return res.status(404).json({
+    // Validate input
+    if (!hospital_identifier || !scopes || !permission_type || !duration) {
+      return res.status(400).json({
         success: false,
-        message: 'Hospital not found'
+        message: 'All fields are required'
       });
     }
 
-    // Calculate expiry date
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + duration_days);
+    // Find hospital by unique_id
+    const hospital = await Hospital.findOne({
+      where: { hospital_unique_id: hospital_identifier }
+    });
 
-    // Create access
+    if (!hospital) {
+      return res.status(404).json({
+        success: false,
+        message: 'Hospital not found with this identifier'
+      });
+    }
+
+    // Calculate expiry date based on duration
+    let expiresAt;
+    if (duration === 'revoked') {
+      // Set far future date for "until revoked"
+      expiresAt = new Date('2099-12-31');
+    } else {
+      expiresAt = new Date();
+      const days = parseInt(duration);
+      expiresAt.setDate(expiresAt.getDate() + days);
+    }
+
+    // Create access with scopes as JSON array
     const hospitalAccess = await HospitalAccess.create({
       medical_account_id: medicalAccountId,
-      hospital_id,
-      access_scope,
-      permissions,
+      hospital_id: hospital.id,
+      access_scope: scopes, // Array of: profile, records, bills, insurance
+      permissions: { type: permission_type }, // read_only or upload_allowed
       expires_at: expiresAt
     });
 
@@ -322,15 +327,22 @@ exports.grantHospitalAccess = async (req, res) => {
       medical_account_id: medicalAccountId,
       action_type: 'access_granted',
       actor_type: 'user',
-      actor_id: req.user.user_id,
-      hospital_id,
-      details: { access_scope, permissions, duration_days }
+      actor_id: medicalAccountId,
+      hospital_id: hospital.id,
+      details: { scopes, permission_type, duration }
     });
 
     res.status(201).json({
       success: true,
       message: 'Hospital access granted successfully',
-      access: hospitalAccess
+      access: {
+        ...hospitalAccess.toJSON(),
+        hospital: {
+          id: hospital.id,
+          hospital_name: hospital.hospital_name,
+          hospital_unique_id: hospital.hospital_unique_id
+        }
+      }
     });
   } catch (error) {
     console.error('Grant hospital access error:', error);
@@ -344,27 +356,36 @@ exports.grantHospitalAccess = async (req, res) => {
 // Get Active Hospital Access
 exports.getActiveAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.user.id;
+    const medicalAccountId = req.medicalUser.id;
 
     const activeAccess = await HospitalAccess.findAll({
       where: {
         medical_account_id: medicalAccountId,
-        is_active: true,
-        expires_at: {
-          [Op.gt]: new Date()
-        }
+        is_active: true
       },
       include: [{
         model: Hospital,
         as: 'hospital',
-        attributes: ['id', 'hospital_name', 'email', 'phone']
+        attributes: ['id', 'hospital_name', 'hospital_unique_id', 'email', 'phone']
       }],
       order: [['granted_at', 'DESC']]
     });
 
+    // Format response to include status (active/expired)
+    const formattedAccess = activeAccess.map(access => {
+      const now = new Date();
+      const isExpired = access.expires_at < now;
+      
+      return {
+        ...access.toJSON(),
+        status: isExpired ? 'expired' : 'active',
+        is_expired: isExpired
+      };
+    });
+
     res.json({
       success: true,
-      access: activeAccess
+      access: formattedAccess
     });
   } catch (error) {
     console.error('Get active access error:', error);
@@ -378,7 +399,7 @@ exports.getActiveAccess = async (req, res) => {
 // Revoke Hospital Access
 exports.revokeHospitalAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.user.id;
+    const medicalAccountId = req.medicalUser.id;
     const { access_id } = req.params;
 
     const access = await HospitalAccess.findOne({
@@ -405,7 +426,7 @@ exports.revokeHospitalAccess = async (req, res) => {
       medical_account_id: medicalAccountId,
       action_type: 'access_revoked',
       actor_type: 'user',
-      actor_id: req.user.user_id,
+      actor_id: medicalAccountId,
       hospital_id: access.hospital_id,
       details: { access_id }
     });
