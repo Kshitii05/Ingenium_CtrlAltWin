@@ -5,7 +5,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     ENTITY SELECTION SCREEN                      │
-│                                                                   │
+│                          (Home Page)                             │
 │   ┌──────────┐      ┌──────────┐      ┌──────────────────┐     │
 │   │   USER   │      │ HOSPITAL │      │    GOVERNMENT    │     │
 │   │    👤    │      │    🏥    │      │       🏛️         │     │
@@ -17,6 +17,7 @@
 ┌─────────────────┐  ┌─────────────────┐   ┌──────────────────┐
 │  USER LOGIN/    │  │ HOSPITAL LOGIN/ │   │ GOVERNMENT LOGIN │
 │   REGISTER      │  │    REGISTER     │   │                  │
+│  (OTP-Based)    │  │ (Email/Password)│   │ (Officer ID)     │
 └─────────────────┘  └─────────────────┘   └──────────────────┘
          │                    │                       │
          │                    │                       │
@@ -37,6 +38,8 @@
     │        │
     │        │
     ▼        ▼
+ MEDICAL  FARMER
+ MODULE   MODULE
 ```
 
 ## 🩺 Medical Module Flow (PRIMARY MODULE)
@@ -96,8 +99,15 @@ Account NOT EXISTS                  │
         │  │    Management           │ │
         │  │                          │ │
         │  │  • Grant Access          │ │
-        │  │  • Set Scope             │ │
-        │  │  • Set Permissions       │ │
+        │  │  • 8 Permission Types:   │ │
+        │  │    - Profile             │ │
+        │  │    - Records             │ │
+        │  │    - Bills               │ │
+        │  │    - Insurance           │ │
+        │  │    - Appointments        │ │
+        │  │    - Prescriptions       │ │
+        │  │    - Lab Results         │ │
+        │  │    - Allergies           │ │
         │  │  • Set Duration          │ │
         │  │  • Revoke Access         │ │
         │  └──────────────────────────┘ │
@@ -124,10 +134,17 @@ Account NOT EXISTS                  │
 │              PATIENT (Medical User)                  │
 │                                                      │
 │  Grants Hospital Access with:                       │
-│  • Hospital ID                                       │
-│  • Scope: [profile, records, bills, insurance]      │
-│  • Permissions: { read: true, upload: true }        │
-│  • Duration: 7 days                                  │
+│  • Hospital ID (HFR)                                 │
+│  • 8 Permission Types with Read/Upload:             │
+│    - Profile (read-only)                             │
+│    - Records (read/upload)                           │
+│    - Bills (read/upload)                             │
+│    - Insurance (read/upload)                         │
+│    - Appointments (read-only)                        │
+│    - Prescriptions (read/upload)                     │
+│    - Lab Results (read/upload)                       │
+│    - Allergies (read-only)                           │
+│  • Duration: 7/30/90 days                            │
 └─────────────────────────────────────────────────────┘
                          │
                          │ POST /medical/access/grant
@@ -186,24 +203,62 @@ USER DASHBOARD
 │ account/status       │
 └──────────────────────┘
       │
-      ├─── EXISTS ────┐
-      │               │
-  NOT EXISTS         │
-      │               ▼
-      ▼         ┌──────────────┐
-┌──────────────────────┐│ FARMER       │
-│ CREATE FARMER  ││ DASHBOARD    │
-│    ACCOUNT           ││              │
+      ├─── EXISTS ─────────────┐
+      │                         │
+  NOT EXISTS                    │
+      │                         ▼
+      ▼                  ┌──────────────┐
+┌──────────────────────┐│ FARMER LOGIN │
+│  FARMER KYC          ││              │
+│  REGISTRATION        ││ Login with:  │
+│                      ││ • Email      │
+│ 4-Step Process:      ││ • KYC ID     │
 │                      │└──────────────┘
-│ • Land Details       │      │
-│ • Crop Types         │      │
-│ • Bank Account       │      ▼
-│ POST /farmer/        │┌──────────────┐
-│  account/create      ││ Applications │
-└──────────────────────┘│ • Submit     │
-      │               ││ • Track      │
-      │               │└──────────────┘
-      └───────────────┘
+│ Step 1: Email        │      │
+│   • Email Address    │      │
+│     (used as login)  │      ▼
+│                      │┌──────────────────┐
+│ Step 2: Personal     ││ FARMER DASHBOARD │
+│   • Full Name        ││                  │
+│   • Aadhaar          ││ • View Profile   │
+│   • Mobile           ││ • KYC ID Display │
+│   • Address          ││ • Applications   │
+│   • State            │└──────────────────┘
+│                      │      │
+│ Step 3: Agricultural │      ▼
+│   • Land Ownership   │┌──────────────────┐
+│   • Land Area        ││ Submit/Track     │
+│   • Village/Taluka   ││ Applications:    │
+│   • District/Pincode ││                  │
+│   • Crop Type        ││ • Subsidies      │
+│   • Irrigation       ││ • Loans          │
+│   • Storage          ││ • Schemes        │
+│                      ││ • Certification  │
+│ Step 4: Financial    │└──────────────────┘
+│   • Bank Account     │      │
+│   • IFSC Code        │      ▼
+│   • Bank Name        │┌──────────────────┐
+│   • KCC Number       ││ Government       │
+│   • Existing ID      ││ Reviews          │
+│                      │└──────────────────┘
+│ POST /farmer/        │
+│  kyc-register        │
+│                      │
+│ Returns:             │
+│ • KYC ID (Password)  │
+│   Format: FRM-STATE- │
+│   YEAR-XXXXXX        │
+└──────────────────────┘
+      │
+      │ Auto-generates KYC ID
+      │ Email = Username
+      │ KYC ID = Password
+      │
+      └─────────────────────┘
+
+Login Credentials:
+  Username: Email Address
+  Password: KYC ID (e.g., FRM-MH-2026-A1B2C3)
 ```
 
 ## 🔐 Security Architecture
@@ -251,16 +306,16 @@ USER DASHBOARD
 ## 📊 Database Schema Relationships
 
 ```
-┌──────────┐          ┌─────────────────┐
-│  users   │──1───1───│ medical_account │
-└──────────┘          └─────────────────┘
-     │                        │
-     │                        │ 1
-     │                        │
-     │                        │ *
-     │                 ┌──────────────┐
-     │                 │hospital_     │
-     │                 │  access      │
+┌──────────┐          ┌─────────────────┐         ┌──────────────┐
+│  users   │──1───1───│ medical_account │───1──*──│medical_      │
+└──────────┘          └─────────────────┘         │ folders      │
+     │                        │                    └──────────────┘
+     │                        │ 1                         │ 1
+     │                        │                           │
+     │                        │ *                         │ *
+     │                 ┌──────────────┐           ┌──────────────┐
+     │                 │hospital_     │           │medical_files │
+     │                 │  access      │           └──────────────┘
      │                 └──────────────┘
      │                        │
      │                        │ *
@@ -270,11 +325,24 @@ USER DASHBOARD
      │                 │  hospitals   │
      │                 └──────────────┘
      │
-     │ 1
+     │ 1 (optional)
      │
      │ *
 ┌──────────────┐
 │farmer_account│
+│              │
+│ Fields:      │
+│ • kyc_id     │
+│ • username   │
+│   (email)    │
+│ • password   │
+│   (KYC ID)   │
+│ • aadhaar    │
+│ • mobile     │
+│ • email      │
+│ • state      │
+│ • land_area  │
+│ • bank info  │
 └──────────────┘
      │ 1
      │
@@ -289,6 +357,19 @@ USER DASHBOARD
 ┌──────────────┐
 │ government_  │
 │    users     │
+└──────────────┘
+
+┌──────────────┐
+│  audit_logs  │
+│  (immutable) │
+│              │
+│ Logs all:    │
+│ • Medical    │
+│   access     │
+│ • Hospital   │
+│   actions    │
+│ • Data views │
+│ • Uploads    │
 └──────────────┘
 ```
 
@@ -308,17 +389,19 @@ USER DASHBOARD
 ┌─────────────────────────────────────────────────────┐
 │           GRANULAR ACCESS CONTROL                    │
 │                                                      │
-│  Scope Selection:                                    │
-│    ☑ Profile    ☐ Records                           │
-│    ☑ Bills      ☐ Insurance                         │
+│  8 Permission Types:                                 │
+│    ☑ Profile        (read-only)                     │
+│    ☑ Records        (read/upload)                   │
+│    ☑ Bills          (read/upload)                   │
+│    ☐ Insurance      (read/upload)                   │
+│    ☑ Appointments   (read-only)                     │
+│    ☐ Prescriptions  (read/upload)                   │
+│    ☑ Lab Results    (read/upload)                   │
+│    ☐ Allergies      (read-only)                     │
 │                                                      │
-│  Permissions:                                        │
-│    Profile:  { read: true, upload: false }          │
-│    Records:  { read: true, upload: true }           │
+│  Duration: 7/30/90 days (auto-expire)               │
 │                                                      │
-│  Duration: 7 days (auto-expire)                     │
-│                                                      │
-│  Hospital: City General Hospital (#1)               │
+│  Hospital: City General Hospital (HFR:12345)        │
 └─────────────────────────────────────────────────────┘
                          │
                          │ Access Created
@@ -328,10 +411,14 @@ USER DASHBOARD
 │                                                      │
 │  ✅ Profile Data (read only)                        │
 │  ✅ Medical Records (read + upload)                 │
-│  ❌ Bills (no access)                               │
+│  ✅ Bills (read + upload)                           │
 │  ❌ Insurance (no access)                           │
+│  ✅ Appointments (read only)                        │
+│  ❌ Prescriptions (no access)                       │
+│  ✅ Lab Results (read + upload)                     │
+│  ❌ Allergies (no access)                           │
 │                                                      │
-│  Valid Until: 7 days from now                       │
+│  Valid Until: Selected duration from grant date     │
 └─────────────────────────────────────────────────────┘
                          │
                          │ All actions logged
@@ -339,20 +426,62 @@ USER DASHBOARD
 ┌─────────────────────────────────────────────────────┐
 │              IMMUTABLE AUDIT TRAIL                   │
 │                                                      │
-│  2024-01-17 10:30 - access_granted                  │
-│  2024-01-17 11:45 - data_viewed (profile)           │
-│  2024-01-17 14:20 - data_uploaded (lab_report)      │
-│  2024-01-18 09:15 - data_viewed (records)           │
-│  2024-01-20 16:00 - access_revoked (user action)    │
+│  2026-01-17 10:30 - access_granted                  │
+│  2026-01-17 11:45 - data_viewed (profile)           │
+│  2026-01-17 14:20 - data_uploaded (lab_report)      │
+│  2026-01-18 09:15 - data_viewed (records)           │
+│  2026-01-20 16:00 - access_revoked (user action)    │
 └─────────────────────────────────────────────────────┘
 ```
+
+## 🔑 Authentication Models
+
+### User Authentication
+- **Method:** OTP-based (email verification)
+- **Storage:** JWT token with user role
+- **Session:** Persistent until logout
+
+### Medical Account Authentication  
+- **Method:** Email + Password + OTP verification
+- **Creation:** Two-step process (initiate → verify OTP → create)
+- **Storage:** JWT token with medical_user role
+- **Separate Session:** Independent from user session
+
+### Farmer Authentication
+- **Registration:** 4-step KYC process
+  - Step 1: Email (becomes username)
+  - Step 2: Personal details (name, aadhaar, mobile, address)
+  - Step 3: Agricultural details (land, crops, irrigation)
+  - Step 4: Financial details (bank account, IFSC, KCC)
+- **Auto-generated Credentials:**
+  - Username: Email address provided
+  - Password: KYC ID (Format: FRM-STATE-YEAR-XXXXXX)
+  - Example: FRM-MH-2026-A1B2C3
+- **Login Method:** Email + KYC ID
+- **Storage:** JWT token with farmer role
+- **KYC ID Storage:** Plain text (not hashed) for direct verification
+- **Separate Session:** Independent from user session
+
+### Hospital Authentication
+- **Registration:** Facility ID (HFR) + Email + Password
+- **Login:** Email + Password
+- **Storage:** JWT token with hospital role
+- **Access Control:** Can only view patients who granted access
+
+### Government Authentication
+- **Login:** Officer ID + Password
+- **Departments:** Health, Agriculture, Revenue, Welfare
+- **Roles:** Officer, Senior Officer, Admin
 
 ---
 
 **This architecture ensures:**
 - ✅ Complete user control over data
-- ✅ Granular permission management
-- ✅ Time-bound access
+- ✅ Granular permission management (8 permission types)
+- ✅ Time-bound access (7/30/90 days)
 - ✅ Complete transparency (audit logs)
 - ✅ Immutable record keeping
 - ✅ Privacy-first design
+- ✅ Separate authentication contexts for different roles
+- ✅ Farmer KYC with auto-generated secure credentials
+- ✅ Email-based login with KYC ID as password for farmers
