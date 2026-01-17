@@ -1,0 +1,101 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
+
+function FarmerDashboard() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user || user.type !== 'user') {
+      navigate('/user/login');
+      return;
+    }
+    fetchProfile();
+  }, [user, navigate]);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await api.get('/farmer/profile');
+      setProfile(response.data.profile);
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  return (
+    <div className="dashboard-page">
+      <div className="navbar">
+        <div className="navbar-brand">Ingenium Farmer</div>
+        <div className="navbar-menu">
+          <span>Farmer ID: {profile?.farmer_id}</span>
+          <Link to="/user/dashboard" className="btn btn-secondary">User Dashboard</Link>
+          <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="dashboard-header">
+          <h1>🌾 Farmer Dashboard</h1>
+          <p>Manage your agricultural services and applications</p>
+        </div>
+
+        <div className="card">
+          <h3>Farmer Profile</h3>
+          <div className="info-grid">
+            <div className="info-item">
+              <label>Farmer ID:</label>
+              <span>{profile?.farmer_id}</span>
+            </div>
+            <div className="info-item">
+              <label>Name:</label>
+              <span>{profile?.user?.name}</span>
+            </div>
+            <div className="info-item">
+              <label>Land Area:</label>
+              <span>{profile?.land_area} acres</span>
+            </div>
+            <div className="info-item">
+              <label>KYC Status:</label>
+              <span className={`badge badge-${profile?.kyc_status === 'verified' ? 'success' : 'warning'}`}>
+                {profile?.kyc_status}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="modules-grid">
+          <div 
+            className="module-card"
+            onClick={() => navigate('/farmer/applications')}
+            style={{ borderLeftColor: '#27ae60' }}
+          >
+            <div className="module-header">
+              <h2>📋 Applications</h2>
+            </div>
+            <p>View and submit applications for subsidies, loans, and schemes</p>
+            <div className="module-action">
+              <span>View Applications →</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default FarmerDashboard;
