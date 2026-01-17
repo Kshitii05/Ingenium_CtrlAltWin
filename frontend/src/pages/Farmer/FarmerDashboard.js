@@ -10,8 +10,14 @@ function FarmerDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || user.type !== 'user') {
-      navigate('/user/login');
+    // Check if user is logged in as farmer
+    if (!user) {
+      navigate('/farmer/login');
+      return;
+    }
+    // If logged in as regular user but not as farmer, redirect to login
+    if (user.type !== 'farmer') {
+      navigate('/farmer/login');
       return;
     }
     fetchProfile();
@@ -29,7 +35,9 @@ function FarmerDashboard() {
   };
 
   const handleLogout = () => {
+    // Clear all authentication data
     logout();
+    // Redirect to home page
     navigate('/');
   };
 
@@ -42,7 +50,7 @@ function FarmerDashboard() {
       <div className="navbar">
         <div className="navbar-brand">Ingenium Farmer</div>
         <div className="navbar-menu">
-          <span>Farmer ID: {profile?.farmer_id}</span>
+          <span>KYC ID: {profile?.kyc_id}</span>
           <Link to="/user/dashboard" className="btn btn-secondary">User Dashboard</Link>
           <button onClick={handleLogout} className="btn btn-secondary">Logout</button>
         </div>

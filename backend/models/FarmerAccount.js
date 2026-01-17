@@ -49,7 +49,8 @@ const FarmerAccount = sequelize.define('FarmerAccount', {
   },
   email: {
     type: DataTypes.STRING(255),
-    allowNull: true
+    allowNull: false,
+    unique: true
   },
   city: {
     type: DataTypes.STRING(100),

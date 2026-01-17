@@ -8,11 +8,6 @@ function FarmerKYCRegister() {
   const [currentSection, setCurrentSection] = useState(1);
   const [states, setStates] = useState([]);
   const [formData, setFormData] = useState({
-    // Account Credentials
-    username: '',
-    password: '',
-    confirmPassword: '',
-    
     // Personal Information
     full_name: '',
     aadhaar: '',
@@ -51,7 +46,7 @@ function FarmerKYCRegister() {
 
   const fetchStates = async () => {
     try {
-      const response = await api.get('/farmer-kyc/states');
+      const response = await api.get('/farmer/states');
       setStates(response.data.states || []);
     } catch (err) {
       console.error('Failed to fetch states:', err);
@@ -78,17 +73,9 @@ function FarmerKYCRegister() {
     setError('');
     
     switch(section) {
-      case 1: // Account Credentials
-        if (!formData.username || formData.username.length < 4) {
-          setError('Username must be at least 4 characters');
-          return false;
-        }
-        if (!formData.password || formData.password.length < 6) {
-          setError('Password must be at least 6 characters');
-          return false;
-        }
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
+      case 1: // Email (Login Information)
+        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          setError('Please enter a valid email address');
           return false;
         }
         break;
@@ -160,13 +147,17 @@ function FarmerKYCRegister() {
     setError('');
 
     try {
-      const response = await api.post('/farmer-kyc/register', formData);
+      // Log the data being sent for debugging
+      console.log('Submitting farmer KYC data:', formData);
+      
+      const response = await api.post('/farmer/kyc-register', formData);
       
       if (response.data.success) {
-        alert(`✅ Registration Successful!\n\nYour KYC ID: ${response.data.farmer.kyc_id}\n\nPlease use your username and password to login.`);
+        alert(`✅ Registration Successful!\n\nYour KYC ID: ${response.data.farmer.kyc_id}\n\n🔐 Login Credentials:\nUsername: ${formData.email}\nPassword: ${response.data.farmer.kyc_id}\n\nPlease save your KYC ID - you'll need it to login!`);
         navigate('/farmer/login');
       }
     } catch (err) {
+      console.error('Registration error:', err.response?.data);
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
@@ -178,46 +169,35 @@ function FarmerKYCRegister() {
       case 1:
         return (
           <div className="kyc-section">
-            <h3>🔐 Account Credentials</h3>
-            <p className="section-description">Create your login credentials</p>
+            <h3>� Login Information</h3>
+            <p className="section-description">Your email will be your username. After registration, you'll receive a KYC ID which will be your password.</p>
             
-            <div className="form-group">
-              <label>Username *</label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                placeholder="Choose a unique username"
-                required
-              />
-              <small>Minimum 4 characters, will be used for login</small>
+            <div className="info-box" style={{ 
+              backgroundColor: '#e3f2fd', 
+              padding: '15px', 
+              borderRadius: '8px', 
+              border: '1px solid #2196f3',
+              marginBottom: '20px'
+            }}>
+              <p style={{ margin: 0, color: '#1976d2', fontSize: '14px' }}>
+                <strong>📌 Important Login Details:</strong><br/>
+                • Username: Your Email Address<br/>
+                • Password: Your KYC ID (Format: FRM-STATE-YEAR-XXXXXX)<br/>
+                • Keep your KYC ID safe for future logins
+              </p>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Password *</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a strong password"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Confirm Password *</label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Re-enter password"
-                  required
-                />
-              </div>
+            <div className="form-group">
+              <label>Email Address *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email address"
+                required
+              />
+              <small>This will be your username for login</small>
             </div>
           </div>
         );
@@ -530,7 +510,7 @@ function FarmerKYCRegister() {
           <div className="progress-indicator">
             <div className={`progress-step ${currentSection >= 1 ? 'active' : ''}`}>
               <div className="step-number">1</div>
-              <div className="step-label">Account</div>
+              <div className="step-label">Email</div>
             </div>
             <div className="progress-line"></div>
             <div className={`progress-step ${currentSection >= 2 ? 'active' : ''}`}>

@@ -43,6 +43,29 @@ function UserDashboard() {
     }
   };
 
+  const handleFarmerClick = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/farmer/account/status', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.exists) {
+        // Farmer account exists, go to login page
+        navigate('/farmer/login');
+      } else {
+        // No farmer account, show KYC registration option
+        navigate('/farmer/register');
+      }
+    } catch (error) {
+      console.error('Error checking farmer account status:', error);
+      alert('Failed to check farmer account status. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const modules = [
     {
       id: 'medical',
@@ -54,8 +77,8 @@ function UserDashboard() {
     {
       id: 'farmer',
       title: '🌾 Farmer Services',
-      description: 'Manage your agricultural services and applications',
-      route: '/farmer/create',
+      description: 'Register for KYC and manage your agricultural services',
+      onClick: handleFarmerClick,
       color: '#27ae60'
     }
   ];

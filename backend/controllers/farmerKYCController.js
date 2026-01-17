@@ -20,16 +20,35 @@ exports.registerFarmerKYC = async (req, res) => {
       land_ownership, land_area, village, taluka, district, pincode,
       crop_type, irrigation_type, storage_capacity,
       // Financial Details
-      bank_account, bank_ifsc, bank_name, kcc_number, farmer_id,
-      // Account
-      username, password
+      bank_account, bank_ifsc, bank_name, kcc_number, farmer_id
     } = req.body;
 
     // Validation
-    if (!full_name || !aadhaar || !mobile || !state || !bank_account || !bank_ifsc || !bank_name || !username || !password) {
+    if (!full_name || !aadhaar || !mobile || !email || !state || !bank_account || !bank_ifsc || !bank_name) {
+      console.log('Missing required fields:', {
+        full_name: !!full_name,
+        aadhaar: !!aadhaar,
+        mobile: !!mobile,
+        email: !!email,
+        state: !!state,
+        bank_account: !!bank_account,
+        bank_ifsc: !!bank_ifsc,
+        bank_name: !!bank_name
+      });
+      
+      const missingFields = [];
+      if (!full_name) missingFields.push('Full Name');
+      if (!aadhaar) missingFields.push('Aadhaar');
+      if (!mobile) missingFields.push('Mobile');
+      if (!email) missingFields.push('Email');
+      if (!state) missingFields.push('State');
+      if (!bank_account) missingFields.push('Bank Account');
+      if (!bank_ifsc) missingFields.push('IFSC Code');
+      if (!bank_name) missingFields.push('Bank Name');
+      
       return res.status(400).json({
         success: false,
-        message: 'Required fields are missing'
+        message: `Required fields are missing: ${missingFields.join(', ')}`
       });
     }
 
@@ -69,19 +88,20 @@ exports.registerFarmerKYC = async (req, res) => {
       });
     }
 
-    // Check if username already exists
-    const existingUsername = await FarmerAccount.findOne({
-      where: { username }
+    // Check if email already exists
+    const existingEmail = await FarmerAccount.findOne({
+      where: { email }
     });
 
-    if (existingUsername) {
+    if (existingEmail) {
       return res.status(400).json({
         success: false,
-        message: 'Username already taken'
+        message: 'Email already registered'
       });
     }
 
     // Create farmer account (KYC ID will be auto-generated in beforeValidate hook)
+    // Username = email, password = KYC ID (will be set after creation)
     const farmerAccount = await FarmerAccount.create({
       // Identity & Contact
       full_name, aadhaar, mobile, email, city, state,
@@ -90,9 +110,16 @@ exports.registerFarmerKYC = async (req, res) => {
       crop_type, irrigation_type, storage_capacity,
       // Financial Details
       bank_account, bank_ifsc, bank_name, kcc_number, farmer_id,
-      // Account
-      username,
-      password_hash: password // Will be hashed in beforeCreate hook
+      // Account (use email as username, KYC ID as password)
+      username: email,
+      password_hash: 'TEMP_PASSWORD' // Will be updated to KYC ID after creation
+    });
+
+    // Update password to be the KYC ID (so users login with email and KYC ID)
+    await farmerAccount.update({
+      password_hash: farmerAccount.kyc_id
+    }, { 
+      hooks: false // Skip password hashing hook since KYC ID should be stored as plain text
     });
 
     res.status(201).json({
@@ -120,34 +147,35 @@ exports.registerFarmerKYC = async (req, res) => {
 // Farmer Login
 exports.loginFarmer = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, kyc_id } = req.body;
 
-    if (!username || !password) {
+    if (!email || !kyc_id) {
       return res.status(400).json({
         success: false,
-        message: 'Username and password are required'
+        message: 'Email and KYC ID are required'
       });
     }
 
-    // Find farmer by username
+    // Find farmer by email (username) and KYC ID (password)
     const farmer = await FarmerAccount.findOne({
-      where: { username, is_active: true }
+      where: { 
+        username: email, // Email is stored as username
+        is_active: true 
+      }
     });
 
     if (!farmer) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid email or KYC ID'
       });
     }
 
-    // Verify password
-    const isPasswordValid = await farmer.comparePassword(password);
-
-    if (!isPasswordValid) {
+    // Verify KYC ID matches the stored password
+    if (farmer.password_hash !== kyc_id) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid email or KYC ID'
       });
     }
 

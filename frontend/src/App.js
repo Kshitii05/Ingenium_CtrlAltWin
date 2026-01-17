@@ -28,6 +28,7 @@ import FarmerAccountCreate from './pages/Farmer/FarmerAccountCreate';
 import FarmerDashboard from './pages/Farmer/FarmerDashboard';
 import FarmerApplications from './pages/Farmer/FarmerApplications';
 import FarmerKYCRegister from './pages/Farmer/FarmerKYCRegister';
+import FarmerLogin from './pages/Farmer/FarmerLogin';
 
 import './App.css';
 
@@ -57,6 +58,7 @@ function App() {
             {/* Farmer Module Routes */}
             <Route path="/farmer/create" element={<FarmerAccountCreate />} />
             <Route path="/farmer/register" element={<FarmerKYCRegister />} />
+            <Route path="/farmer/login" element={<FarmerLogin />} />
             <Route path="/farmer/dashboard" element={<FarmerDashboard />} />
             <Route path="/farmer/applications" element={<FarmerApplications />} />
             

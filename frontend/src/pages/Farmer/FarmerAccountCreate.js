@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
@@ -10,7 +10,7 @@ function FarmerAccountCreate() {
   const [formData, setFormData] = useState({
     land_area: '',
     land_location: '',
-    crop_types: [],
+    crop_types: '', // Changed from array to string
     bank_account: '',
     bank_ifsc: ''
   });
@@ -50,7 +50,7 @@ function FarmerAccountCreate() {
     try {
       const response = await api.post('/farmer/account/create', {
         ...formData,
-        crop_types: formData.crop_types.split(',').map(c => c.trim())
+        crop_types: formData.crop_types // Send as string, not array
       });
 
       if (response.data.success) {
@@ -150,6 +150,11 @@ function FarmerAccountCreate() {
               Cancel
             </button>
           </form>
+
+          <div className="auth-footer" style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #e0e0e0', textAlign: 'center' }}>
+            <p style={{ marginBottom: '10px' }}>Need to register as a new farmer?</p>
+            <p><Link to="/farmer/register" style={{ color: '#6c5ce7', fontWeight: '600', textDecoration: 'none' }}>Complete KYC Registration →</Link></p>
+          </div>
         </div>
       </div>
     </div>
