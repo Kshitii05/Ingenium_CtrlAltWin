@@ -189,7 +189,7 @@ function MedicalBills() {
   return (
     <div className="dashboard-page">
       <div className="navbar">
-        <div className="navbar-brand">Ingenium Medical</div>
+        <div className="navbar-brand">JanSetu Medical</div>
         <div className="navbar-menu">
           <Link to="/medical/dashboard" className="btn btn-secondary">← Dashboard</Link>
         </div>

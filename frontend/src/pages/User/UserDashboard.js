@@ -86,7 +86,7 @@ function UserDashboard() {
   return (
     <div className="dashboard-page">
       <div className="navbar">
-        <div className="navbar-brand">Ingenium</div>
+        <div className="navbar-brand">JanSetu</div>
         <div className="navbar-menu">
           <span>Welcome, {user?.name}</span>
           <button onClick={handleLogout} className="btn btn-secondary">Logout</button>

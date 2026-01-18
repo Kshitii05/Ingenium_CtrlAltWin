@@ -1,5 +1,15 @@
 const FarmerAccount = require('../models/FarmerAccount');
 const { generateToken } = require('../utils/jwt');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
+
+// Generate Farmer KYC ID
+function generateFarmerKycId(state) {
+  const stateCode = state.substring(0, 2).toUpperCase();
+  const year = new Date().getFullYear();
+  const randomId = uuidv4().substring(0, 6).toUpperCase();
+  return `FRM-${stateCode}-${year}-${randomId}`;
+}
 
 // Indian states list
 const INDIAN_STATES = [
@@ -101,8 +111,12 @@ exports.registerFarmerKYC = async (req, res) => {
       });
     }
 
-    // Create farmer account (KYC ID will be auto-generated in beforeValidate hook)
-    // Username = email, password = KYC ID (will be set after creation)
+
+    // Generate KYC ID and hash it for password
+    const kycId = generateFarmerKycId(state);
+    const hashedPassword = await bcrypt.hash(kycId, 10);
+
+    // Create farmer account with KYC ID and hashed password
     const farmerAccount = await FarmerAccount.create({
       // Identity & Contact
       full_name, aadhaar, mobile, email, city, state,
@@ -111,16 +125,12 @@ exports.registerFarmerKYC = async (req, res) => {
       crop_type, irrigation_type, storage_capacity,
       // Financial Details
       bank_account, bank_ifsc, bank_name, kcc_number, farmer_id,
-      // Account (use email as username, KYC ID as password)
+      // Account
+      kyc_id: kycId,
       username: email,
-      password_hash: 'TEMP_PASSWORD' // Will be updated to KYC ID after creation
-    });
-
-    // Update password to be the KYC ID (so users login with email and KYC ID)
-    await farmerAccount.update({
-      password_hash: farmerAccount.kyc_id
-    }, { 
-      hooks: false // Skip password hashing hook since KYC ID should be stored as plain text
+      password_hash: hashedPassword,
+    }, {
+      hooks: false // Skip hooks since we're manually setting kyc_id and password_hash
     });
 
     res.status(201).json({
@@ -157,7 +167,7 @@ exports.loginFarmer = async (req, res) => {
       });
     }
 
-    // Find farmer by email (username) and KYC ID (password)
+    // Find farmer by email (username)
     const farmer = await FarmerAccount.findOne({
       where: { 
         username: email, // Email is stored as username
@@ -172,8 +182,9 @@ exports.loginFarmer = async (req, res) => {
       });
     }
 
-    // Verify KYC ID matches the stored password
-    if (farmer.password_hash !== kyc_id) {
+    // Verify KYC ID matches the stored hashed password using bcrypt
+    const isPasswordValid = await farmer.comparePassword(kyc_id);
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: 'Invalid email or KYC ID'

@@ -51,7 +51,7 @@ function FarmerDashboard() {
   return (
     <div className="dashboard-page">
       <div className="navbar">
-        <div className="navbar-brand">Ingenium Farmer</div>
+        <div className="navbar-brand">JanSetu Farmer</div>
         <div className="navbar-menu">
           <span>KYC ID: {profile?.kyc_id}</span>
           <Link to="/user/dashboard" className="btn btn-secondary">User Dashboard</Link>

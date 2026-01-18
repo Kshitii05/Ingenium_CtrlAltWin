@@ -78,7 +78,7 @@ function FarmerApplications() {
   return (
     <div className="dashboard-page">
       <div className="navbar">
-        <div className="navbar-brand">Ingenium Farmer</div>
+        <div className="navbar-brand">JanSetu Farmer</div>
         <div className="navbar-menu">
           <Link to="/farmer/dashboard" className="btn btn-secondary">← Dashboard</Link>
         </div>

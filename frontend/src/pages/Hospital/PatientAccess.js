@@ -114,6 +114,28 @@ function PatientAccess() {
     }
   };
 
+  const handleDownloadPatientDoc = async (fileId, fileName) => {
+    try {
+      setError('');
+      const response = await api.get(`/hospital/download-patient-file/${fileId}`, {
+        responseType: 'blob'
+      });
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to download file');
+      console.error('Download error:', err);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -172,22 +194,22 @@ function PatientAccess() {
           <h3>Patient Profile</h3>
           <div className="profile-grid">
             <div className="profile-item">
-              <strong>Name:</strong> {patient.name}
+              <strong>Name:</strong> {patient.name || 'N/A'}
             </div>
             <div className="profile-item">
               <strong>Medical ID:</strong> {patient.medical_id}
             </div>
             <div className="profile-item">
-              <strong>Gender:</strong> {patient.gender}
+              <strong>Gender:</strong> {patient.gender || 'N/A'}
             </div>
             <div className="profile-item">
-              <strong>Date of Birth:</strong> {formatDate(patient.dob)}
+              <strong>Date of Birth:</strong> {patient.dob ? formatDate(patient.dob) : 'N/A'}
             </div>
             <div className="profile-item">
               <strong>Blood Group:</strong> {patient.blood_group || 'N/A'}
             </div>
             <div className="profile-item">
-              <strong>Phone:</strong> {patient.phone}
+              <strong>Phone:</strong> {patient.phone || 'N/A'}
             </div>
             {patient.allergies && (
               <div className="profile-item full-width">
@@ -197,6 +219,21 @@ function PatientAccess() {
             {patient.chronic_conditions && (
               <div className="profile-item full-width">
                 <strong>Chronic Conditions:</strong> {patient.chronic_conditions}
+              </div>
+            )}
+            {patient.current_medications && (
+              <div className="profile-item full-width">
+                <strong>Current Medications:</strong> {patient.current_medications}
+              </div>
+            )}
+            {patient.emergency_contact_name && (
+              <div className="profile-item">
+                <strong>Emergency Contact:</strong> {patient.emergency_contact_name}
+              </div>
+            )}
+            {patient.emergency_contact_phone && (
+              <div className="profile-item">
+                <strong>Emergency Phone:</strong> {patient.emergency_contact_phone}
               </div>
             )}
           </div>
@@ -328,14 +365,12 @@ function PatientAccess() {
                     )}
                   </div>
                   <div className="doc-actions">
-                    <a
-                      href={`http://localhost:5000/api/medical/files/${doc.id}/download`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => handleDownloadPatientDoc(doc.id, doc.file_name)}
                       className="btn btn-sm btn-primary"
                     >
                       Download
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}

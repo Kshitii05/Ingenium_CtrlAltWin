@@ -33,7 +33,7 @@ function EntitySelection() {
     <div className="entity-selection">
       <div className="entity-container">
         <div className="entity-header">
-          <h1>🔐 Ingenium</h1>
+          <h1>🔐 JanSetu</h1>
           <p>Privacy-Centric Digital Identity Platform</p>
         </div>
 

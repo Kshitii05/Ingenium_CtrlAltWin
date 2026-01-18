@@ -55,6 +55,12 @@ router.post('/upload-doc/:patient_id', authMiddleware, roleMiddleware('hospital'
 // Get hospital's uploaded documents
 router.get('/uploaded-records', authMiddleware, roleMiddleware('hospital'), hospitalController.getHospitalUploads);
 
+// Download hospital uploaded file
+router.get('/download-file/:fileId', authMiddleware, roleMiddleware('hospital'), hospitalController.downloadHospitalFile);
+
+// Download patient file (that hospital has access to)
+router.get('/download-patient-file/:fileId', authMiddleware, roleMiddleware('hospital'), hospitalController.downloadPatientFile);
+
 // Legacy routes (keep for backward compatibility)
 router.post('/records/upload', authMiddleware, roleMiddleware('hospital'), hospitalController.uploadMedicalRecord);
 router.post('/bills/create', authMiddleware, roleMiddleware('hospital'), hospitalController.createMedicalBill);

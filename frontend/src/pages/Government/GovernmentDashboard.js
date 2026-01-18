@@ -86,7 +86,7 @@ function GovernmentDashboard() {
   return (
     <div className="dashboard-page">
       <div className="navbar">
-        <div className="navbar-brand">Ingenium Government</div>
+        <div className="navbar-brand">JanSetu Government</div>
         <div className="navbar-menu">
           <span>{user?.name} - {user?.department}</span>
           <button onClick={handleLogout} className="btn btn-secondary">Logout</button>

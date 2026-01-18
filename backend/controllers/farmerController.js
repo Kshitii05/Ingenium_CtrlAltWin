@@ -1,5 +1,15 @@
+const bcrypt = require('bcryptjs');
+
 const { FarmerAccount, User, FarmerDocument, FarmerApplication, GovernmentUser } = require('../models');
 const { v4: uuidv4 } = require('uuid');
+
+// Generate Farmer KYC ID
+function generateFarmerKycId(state) {
+  const stateCode = state.substring(0, 2).toUpperCase();
+  const year = new Date().getFullYear();
+  const randomId = uuidv4().substring(0, 6).toUpperCase();
+  return `FRM-${stateCode}-${year}-${randomId}`;
+}
 
 // Check Farmer Account Status
 exports.checkAccountStatus = async (req, res) => {
@@ -58,10 +68,15 @@ exports.createFarmerAccount = async (req, res) => {
     // Create username from user data
     const username = user.name.toLowerCase().replace(/\s+/g, '') + userId;
 
+    // Generate KYC ID and hash it for password
+    const kycId = generateFarmerKycId('Unknown');
+    const hashedPassword = await bcrypt.hash(kycId, 10);
+
     const farmerAccount = await FarmerAccount.create({
       user_id: userId,
       username: username,
-      password_hash: 'temp_password_' + Date.now(), // Temporary password
+      kyc_id: kycId,
+      password_hash: hashedPassword,
       full_name: user.name,
       aadhaar: user.aadhaar_number || '000000000000', // Fallback if not available
       mobile: user.phone ? user.phone.substring(0, 10) : '0000000000',
@@ -73,11 +88,13 @@ exports.createFarmerAccount = async (req, res) => {
       bank_ifsc: bank_ifsc || null,
       bank_name: 'Not Specified',
       kyc_status: 'pending'
+    }, {
+      hooks: false // Skip hooks since we're manually setting kyc_id and password_hash
     });
 
     res.status(201).json({
       success: true,
-      message: 'Farmer account created successfully',
+      message: 'Farmer account created successfully. Use your KYC ID as password to login.',
       account: {
         id: farmerAccount.id,
         kyc_id: farmerAccount.kyc_id,

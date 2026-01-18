@@ -50,6 +50,33 @@ function UploadedRecords() {
     return '📎';
   };
 
+  const handleDownload = async (fileId, fileName) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/hospital/download-file/${fileId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError('Failed to download file: ' + err.message);
+    }
+  };
+
   if (loading) {
     return <div className="loading">Loading uploaded records...</div>;
   }
@@ -119,14 +146,12 @@ function UploadedRecords() {
               )}
             </div>
             <div className="record-actions">
-              <a
-                href={`http://localhost:5000/api/medical/files/${record.id}/download`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => handleDownload(record.id, record.file_name)}
                 className="btn btn-primary"
               >
                 📥 Download
-              </a>
+              </button>
             </div>
           </div>
         ))}

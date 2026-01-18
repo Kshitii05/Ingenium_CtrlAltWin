@@ -60,7 +60,7 @@ function HospitalRegister() {
         <div className="auth-card">
           <div className="auth-header">
             <h1>🏥 Hospital Registration</h1>
-            <p>Register your hospital on Ingenium platform</p>
+            <p>Register your hospital on JanSetu platform</p>
           </div>
 
           {error && <div className="alert alert-error">{error}</div>}

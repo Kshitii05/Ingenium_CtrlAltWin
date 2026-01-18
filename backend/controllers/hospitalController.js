@@ -348,9 +348,13 @@ exports.queryPatient = async (req, res) => {
         dob: medicalAccount.user.dob,
         gender: medicalAccount.user.gender,
         phone: medicalAccount.user.phone,
+        address: medicalAccount.user.address,
         blood_group: medicalAccount.blood_group,
         allergies: medicalAccount.allergies,
-        chronic_conditions: medicalAccount.chronic_conditions
+        chronic_conditions: medicalAccount.chronic_conditions,
+        current_medications: medicalAccount.current_medications,
+        emergency_contact_name: medicalAccount.emergency_contact_name,
+        emergency_contact_phone: medicalAccount.emergency_contact_phone
       }
     });
   } catch (error) {
@@ -522,6 +526,146 @@ exports.getHospitalUploads = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch uploaded records'
+    });
+  }
+};
+
+// Download hospital uploaded file
+exports.downloadHospitalFile = async (req, res) => {
+  try {
+    const hospitalId = req.user.id;
+    const { fileId } = req.params;
+
+    // Find the file and verify it was uploaded by this hospital
+    const file = await MedicalFile.findOne({
+      where: {
+        id: fileId,
+        hospital_id: hospitalId,
+        uploaded_by: 'hospital'
+      }
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found or access denied'
+      });
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(file.file_path)) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found on server'
+      });
+    }
+
+    // Send file for download
+    res.download(file.file_path, file.file_name, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: 'Failed to download file'
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Download hospital file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download file'
+    });
+  }
+};
+
+// Download patient file (that hospital has access to)
+exports.downloadPatientFile = async (req, res) => {
+  try {
+    const hospitalId = req.user.id;
+    const { fileId } = req.params;
+
+    // Find the file
+    const file = await MedicalFile.findOne({
+      where: { id: fileId },
+      include: [{
+        model: MedicalAccount,
+        as: 'medicalAccount',
+        attributes: ['id', 'medical_id']
+      }]
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    // Check if file is visible to hospitals
+    if (!file.visibility_to_hospital) {
+      return res.status(403).json({
+        success: false,
+        message: 'This file is not visible to hospitals'
+      });
+    }
+
+    // Verify hospital has active access to this patient
+    const access = await HospitalAccess.findOne({
+      where: {
+        medical_account_id: file.medical_account_id,
+        hospital_id: hospitalId,
+        is_active: true,
+        expires_at: {
+          [Op.gt]: new Date()
+        }
+      }
+    });
+
+    if (!access) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied or expired'
+      });
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(file.file_path)) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found on server'
+      });
+    }
+
+    // Create audit log
+    await AuditLog.create({
+      medical_account_id: file.medical_account_id,
+      action_type: 'file_downloaded',
+      actor_type: 'hospital',
+      actor_id: hospitalId,
+      hospital_id: hospitalId,
+      details: { file_id: fileId, file_name: file.file_name }
+    });
+
+    // Send file for download
+    res.download(file.file_path, file.file_name, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        if (!res.headersSent) {
+          res.status(500).json({
+            success: false,
+            message: 'Failed to download file'
+          });
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Download patient file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download file'
     });
   }
 };
