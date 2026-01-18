@@ -18,27 +18,33 @@ const MedicalRecords = () => {
   }, [medicalId, token]);
 
   const fetchFiles = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('http://localhost:5000/api/medical/files?category=records', {
+  setLoading(true);
+  setError('');
+
+  try {
+    const response = await fetch(
+      'http://localhost:5000/api/medical/files?category=records',
+      {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFiles(data.files || []);
-      } else {
-        throw new Error('Failed to fetch files');
       }
-    } catch (err) {
-      setError('Error loading files: ' + err.message);
-      console.error('Error fetching files:', err);
-    } finally {
-      setLoading(false);
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch files');
     }
-  };
+
+    const data = await response.json();
+    setFiles(data.files || []);
+  } catch (err) {
+    setError('Error loading files');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -79,7 +85,7 @@ const MedicalRecords = () => {
       if (response.ok) {
         const data = await response.json();
         setSuccess('File uploaded successfully!');
-        fetchFiles();
+        await fetchFiles();
         e.target.value = ''; // Reset file input
         setTimeout(() => setSuccess(''), 3000);
       } else {

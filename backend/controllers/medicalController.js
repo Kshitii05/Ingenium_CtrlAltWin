@@ -279,7 +279,7 @@ exports.updateMedicalProfile = async (req, res) => {
 // Grant Hospital Access
 exports.grantHospitalAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.medicalUser.id;
+    const medicalAccountId = req.user.id;
     const { hospital_identifier, scopes, permission_type, duration } = req.body;
 
     // Validate input
@@ -290,15 +290,15 @@ exports.grantHospitalAccess = async (req, res) => {
       });
     }
 
-    // Find hospital by unique_id
+    // Find hospital by hfr_id (since that's what the user enters)
     const hospital = await Hospital.findOne({
-      where: { hospital_unique_id: hospital_identifier }
+      where: { hfr_id: hospital_identifier }
     });
 
     if (!hospital) {
       return res.status(404).json({
         success: false,
-        message: 'Hospital not found with this identifier'
+        message: 'Hospital not found with this HFR ID'
       });
     }
 
@@ -356,7 +356,7 @@ exports.grantHospitalAccess = async (req, res) => {
 // Get Active Hospital Access
 exports.getActiveAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.medicalUser.id;
+    const medicalAccountId = req.user.id;
 
     const activeAccess = await HospitalAccess.findAll({
       where: {
@@ -399,7 +399,7 @@ exports.getActiveAccess = async (req, res) => {
 // Revoke Hospital Access
 exports.revokeHospitalAccess = async (req, res) => {
   try {
-    const medicalAccountId = req.medicalUser.id;
+    const medicalAccountId = req.user.id;
     const { access_id } = req.params;
 
     const access = await HospitalAccess.findOne({

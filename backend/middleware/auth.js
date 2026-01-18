@@ -70,6 +70,7 @@ const authFarmer = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded farmer token:", decoded);
     
     if (decoded.role !== 'farmer') {
       return res.status(403).json({

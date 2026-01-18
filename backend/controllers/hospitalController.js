@@ -388,6 +388,7 @@ exports.getPatientDocs = async (req, res) => {
       order: [['created_at', 'DESC']]
     });
 
+
     res.json({
       success: true,
       files,
