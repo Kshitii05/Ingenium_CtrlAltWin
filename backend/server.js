@@ -35,6 +35,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/auth', require('./routes/auth/authRoutes'));
 app.use('/api/medical', require('./routes/medical/medicalRoutes'));
 app.use('/api/medical', require('./routes/medical/medicalFileRoutes'));
+app.use('/api/medical', require('./routes/medical/medicalChatbotRoutes'));
 app.use('/api/farmer', require('./routes/farmer/farmerRoutes'));
 app.use('/api/farmer', require('./routes/farmer/farmerKYCRoutes'));
 app.use('/api/government', require('./routes/auth/governmentRoutes'));

@@ -43,6 +43,12 @@ JanSetu is a privacy-centric digital identity platform that enables secure data 
 - **Audit Trail**: Complete transparency of government actions
 - **Government Integration**: Direct integration with farmer and medical services
 
+#### 🌐 Multi-Language Support
+- **Language Switching**: Support for multiple regional languages (Hindi, Gujarati, etc.)
+- **Accessibility**: Help users who are not fluent in English, especially farmers in rural areas
+- **Dynamic Translation**: Real-time interface language switching
+- **Localized Content**: Forms, instructions, and notifications in user's preferred language
+
 ---
 
 ## 🛠️ Tech Stack
