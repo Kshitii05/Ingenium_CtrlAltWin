@@ -1,49 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import './MedicalRecords.css';
+import api from '../../utils/api';
 
 const MedicalRecords = () => {
   const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const medicalId = localStorage.getItem('medicalId');
-  const token = localStorage.getItem('token');
+  const fetchFiles = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/medical/files?category=records');
+      setFiles(response.data.files || []);
+      setError('');
+    } catch (err) {
+      console.error('Error loading files:', err);
+      setError('Error loading files');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (medicalId && token) {
-      fetchFiles();
-    }
-  }, [medicalId, token]);
-
-  const fetchFiles = async () => {
-  setLoading(true);
-  setError('');
-
-  try {
-    const response = await fetch(
-      'http://localhost:5000/api/medical/files?category=records',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch files');
-    }
-
-    const data = await response.json();
-    setFiles(data.files || []);
-  } catch (err) {
-    setError('Error loading files');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+    fetchFiles();
+  }, []);
 
 
   const handleFileUpload = async (e) => {
@@ -74,26 +56,18 @@ const MedicalRecords = () => {
       formData.append('file', file);
       formData.append('category', 'records');
 
-      const response = await fetch('http://localhost:5000/api/medical/files', {
-        method: 'POST',
+      const response = await api.post('/medical/files', formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setSuccess('File uploaded successfully!');
-        await fetchFiles();
-        e.target.value = ''; // Reset file input
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload file');
-      }
+      setSuccess('File uploaded successfully!');
+      await fetchFiles();
+      e.target.value = '';
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Error uploading file: ' + err.message);
+      setError('Error uploading file: ' + (err.response?.data?.message || err.message));
       console.error('Error uploading file:', err);
     } finally {
       setUploading(false);

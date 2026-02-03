@@ -196,7 +196,8 @@ exports.loginFarmer = async (req, res) => {
       id: farmer.id,
       kyc_id: farmer.kyc_id,
       username: farmer.username,
-      role: 'farmer'
+      role: 'farmer',
+      type: 'farmer'
     });
 
     res.json({

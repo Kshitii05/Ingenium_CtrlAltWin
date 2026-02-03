@@ -17,8 +17,9 @@ function FarmerApplications() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!user || user.type !== 'user') {
-      navigate('/user/login');
+    // Check if user is logged in
+    if (!user) {
+      navigate('/farmer/login');
       return;
     }
     fetchApplications();

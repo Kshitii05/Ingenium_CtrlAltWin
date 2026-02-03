@@ -113,16 +113,31 @@ exports.createFarmerAccount = async (req, res) => {
 // Get Farmer Profile
 exports.getFarmerProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userIdInToken = req.user.id;
+    const userType = req.user.type;
 
-    const farmerAccount = await FarmerAccount.findOne({
-      where: { user_id: userId },
-      include: [{
-        model: User,
-        as: 'user',
-        attributes: ['name', 'dob', 'phone', 'email', 'address']
-      }]
-    });
+    let farmerAccount;
+    
+    if (userType === 'farmer') {
+      // If logged in via KYC, the id in token is the FarmerAccount's primary key
+      farmerAccount = await FarmerAccount.findByPk(userIdInToken, {
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['name', 'dob', 'phone', 'email', 'address']
+        }]
+      });
+    } else {
+      // If logged in as regular user, the id in token is the User's primary key
+      farmerAccount = await FarmerAccount.findOne({
+        where: { user_id: userIdInToken },
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['name', 'dob', 'phone', 'email', 'address']
+        }]
+      });
+    }
 
     if (!farmerAccount) {
       return res.status(404).json({
@@ -147,11 +162,18 @@ exports.getFarmerProfile = async (req, res) => {
 // Get Farmer Documents
 exports.getFarmerDocuments = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userIdInToken = req.user.id;
+    const userType = req.user.type;
 
-    const farmerAccount = await FarmerAccount.findOne({
-      where: { user_id: userId }
-    });
+    let farmerAccount;
+    
+    if (userType === 'farmer') {
+      farmerAccount = await FarmerAccount.findByPk(userIdInToken);
+    } else {
+      farmerAccount = await FarmerAccount.findOne({
+        where: { user_id: userIdInToken }
+      });
+    }
 
     if (!farmerAccount) {
       return res.status(404).json({
@@ -181,11 +203,18 @@ exports.getFarmerDocuments = async (req, res) => {
 // Get Farmer Applications
 exports.getFarmerApplications = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userIdInToken = req.user.id;
+    const userType = req.user.type;
 
-    const farmerAccount = await FarmerAccount.findOne({
-      where: { user_id: userId }
-    });
+    let farmerAccount;
+    
+    if (userType === 'farmer') {
+      farmerAccount = await FarmerAccount.findByPk(userIdInToken);
+    } else {
+      farmerAccount = await FarmerAccount.findOne({
+        where: { user_id: userIdInToken }
+      });
+    }
 
     if (!farmerAccount) {
       return res.status(404).json({
@@ -220,12 +249,18 @@ exports.getFarmerApplications = async (req, res) => {
 // Submit Farmer Application
 exports.submitApplication = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { application_type, title, description } = req.body;
+    const userIdInToken = req.user.id;
+    const userType = req.user.type;
 
-    const farmerAccount = await FarmerAccount.findOne({
-      where: { user_id: userId }
-    });
+    let farmerAccount;
+    
+    if (userType === 'farmer') {
+      farmerAccount = await FarmerAccount.findByPk(userIdInToken);
+    } else {
+      farmerAccount = await FarmerAccount.findOne({
+        where: { user_id: userIdInToken }
+      });
+    }
 
     if (!farmerAccount) {
       return res.status(404).json({
@@ -233,6 +268,8 @@ exports.submitApplication = async (req, res) => {
         message: 'Farmer account not found'
       });
     }
+
+    const { application_type, title, description } = req.body;
 
     const application = await FarmerApplication.create({
       farmer_account_id: farmerAccount.id,
