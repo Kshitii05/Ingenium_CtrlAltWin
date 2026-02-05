@@ -82,21 +82,11 @@ const MedicalRecords = () => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch(`http://localhost:5000/api/medical/files/${fileId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      await api.delete(`/medical/files/${fileId}`);
 
-      if (response.ok) {
-        setSuccess('File deleted successfully!');
-        fetchFiles();
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete file');
-      }
+      setSuccess('File deleted successfully!');
+      fetchFiles();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError('Error deleting file: ' + err.message);
       console.error('Error deleting file:', err);
@@ -107,25 +97,19 @@ const MedicalRecords = () => {
 
   const handleDownload = async (fileId, fileName) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/medical/files/${fileId}/download`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await api.get(`/medical/files/${fileId}/download`, {
+        responseType: 'blob'
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        throw new Error('Failed to download file');
-      }
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
       setError('Error downloading file: ' + err.message);
       console.error('Error downloading file:', err);
