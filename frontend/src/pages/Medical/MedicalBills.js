@@ -25,6 +25,7 @@ function MedicalBills() {
     }
     fetchBills();
     fetchBillDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const fetchBills = async () => {

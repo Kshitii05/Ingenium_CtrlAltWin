@@ -56,7 +56,7 @@ const MedicalRecords = () => {
       formData.append('file', file);
       formData.append('category', 'records');
 
-      const response = await api.post('/medical/files', formData, {
+      await api.post('/medical/files', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
