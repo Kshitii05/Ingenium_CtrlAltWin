@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import api from '../../utils/api';
 import './UserDashboard.css';
 
 function UserDashboard() {
@@ -23,10 +23,7 @@ function UserDashboard() {
   const handleMedicalClick = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/medical/account/status', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/medical/account/status');
 
       if (response.data.exists) {
         // Medical account exists, go to login
@@ -46,10 +43,7 @@ function UserDashboard() {
   const handleFarmerClick = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/farmer/account/status', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/farmer/account/status');
 
       if (response.data.exists) {
         // Farmer account exists, go to login page

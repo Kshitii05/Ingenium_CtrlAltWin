@@ -67,14 +67,8 @@ function MedicalProfile() {
 
   const fetchProfileDocuments = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/medical/files?category=profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProfileDocuments(data.files || []);
+      const response = await api.get('/medical/files?category=profile');
+      setProfileDocuments(response.data.files || []);
       }
     } catch (error) {
       console.error('Failed to fetch profile documents:', error);
@@ -107,23 +101,16 @@ function MedicalProfile() {
       formData.append('file', file);
       formData.append('category', 'profile');
 
-      const response = await fetch('http://localhost:5000/api/medical/files', {
-        method: 'POST',
+      await api.post('/medical/files', formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      if (response.ok) {
-        setUploadSuccess('Document uploaded successfully!');
-        fetchProfileDocuments();
-        e.target.value = '';
-        setTimeout(() => setUploadSuccess(''), 3000);
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload file');
-      }
+      setUploadSuccess('Document uploaded successfully!');
+      fetchProfileDocuments();
+      e.target.value = '';
+      setTimeout(() => setUploadSuccess(''), 3000);
     } catch (err) {
       setUploadError('Error uploading file: ' + err.message);
     } finally {
@@ -137,18 +124,10 @@ function MedicalProfile() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/medical/files/${fileId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        setUploadSuccess('Document deleted successfully!');
-        fetchProfileDocuments();
-        setTimeout(() => setUploadSuccess(''), 3000);
-      }
+      await api.delete(`/medical/files/${fileId}`);
+      setUploadSuccess('Document deleted successfully!');
+      fetchProfileDocuments();
+      setTimeout(() => setUploadSuccess(''), 3000);
     } catch (err) {
       setUploadError('Error deleting file: ' + err.message);
     }
@@ -156,17 +135,14 @@ function MedicalProfile() {
 
   const handleDownload = async (fileId, fileName) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/medical/files/${fileId}/download`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await api.get(`/medical/files/${fileId}/download`, {
+        responseType: 'blob'
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
         a.download = fileName;
         document.body.appendChild(a);
         a.click();

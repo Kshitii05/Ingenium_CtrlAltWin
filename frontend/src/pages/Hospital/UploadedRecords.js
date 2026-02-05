@@ -52,18 +52,11 @@ function UploadedRecords() {
 
   const handleDownload = async (fileId, fileName) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/hospital/download-file/${fileId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await api.get(`/hospital/download-file/${fileId}`, {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to download file');
-      }
-
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
