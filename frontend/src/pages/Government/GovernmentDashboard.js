@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 
 function GovernmentDashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     // Redirect to government login page which shows the under development message

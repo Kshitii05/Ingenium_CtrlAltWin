@@ -120,6 +120,10 @@ function FarmerKYCRegister() {
           return false;
         }
         break;
+        
+      default:
+        // No specific validation for other sections
+        break;
     }
     
     return true;

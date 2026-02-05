@@ -5,7 +5,6 @@ import api from '../../utils/api';
 
 function MedicalAccountCreate() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,6 +20,7 @@ function MedicalAccountCreate() {
 
   useEffect(() => {
     checkAccountStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAccountStatus = async () => {

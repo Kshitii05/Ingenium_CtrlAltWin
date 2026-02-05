@@ -1,42 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../utils/api';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 function GovernmentLogin() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  // Component shows "Under Development" message
+  /* eslint-disable no-unused-vars */
+  // Keeping these for future implementation
+  // const navigate = useNavigate();
+  // const { login } = useAuth();
+  // const [formData, setFormData] = useState({ email: '', password: '' });
+  // const [error, setError] = useState('');
+  // const [loading, setLoading] = useState(false);
+  /* eslint-enable no-unused-vars */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await api.post('/auth/government/login', formData);
-      
-      if (response.data.success) {
-        login({ ...response.data.user, type: 'government' }, response.data.token);
-        navigate('/government/dashboard');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+    // Implementation pending for government module
+    alert('Government module is under development');
   };
 
   return (

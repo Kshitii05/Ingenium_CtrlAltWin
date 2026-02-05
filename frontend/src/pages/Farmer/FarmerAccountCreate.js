@@ -5,7 +5,6 @@ import api from '../../utils/api';
 
 function FarmerAccountCreate() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [step, setStep] = useState('check');
   const [formData, setFormData] = useState({
     land_area: '',
@@ -19,6 +18,7 @@ function FarmerAccountCreate() {
 
   useEffect(() => {
     checkAccountStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAccountStatus = async () => {
