@@ -3,20 +3,6 @@ import { Link } from 'react-router-dom';
 
 function GovernmentLogin() {
   // Component shows "Under Development" message
-  /* eslint-disable no-unused-vars */
-  // Keeping these for future implementation
-  // const navigate = useNavigate();
-  // const { login } = useAuth();
-  // const [formData, setFormData] = useState({ email: '', password: '' });
-  // const [error, setError] = useState('');
-  // const [loading, setLoading] = useState(false);
-  /* eslint-enable no-unused-vars */
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    // Implementation pending for government module
-    alert('Government module is under development');
-  };
 
   return (
     <div className="auth-page">
