@@ -69,7 +69,6 @@ function MedicalProfile() {
     try {
       const response = await api.get('/medical/files?category=profile');
       setProfileDocuments(response.data.files || []);
-      }
     } catch (error) {
       console.error('Failed to fetch profile documents:', error);
     }

@@ -43,7 +43,6 @@ function MedicalBills() {
     try {
       const response = await api.get('/medical/files?category=bills');
       setBillDocuments(response.data.files || []);
-      }
     } catch (error) {
       console.error('Failed to fetch bill documents:', error);
     }
