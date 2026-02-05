@@ -29,6 +29,9 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
+# Uploads
+uploads/
+
 # Misc
 coverage/
 .cache/

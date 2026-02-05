@@ -36,6 +36,7 @@ async function setupDatabase() {
     if (!existingHospital) {
       await Hospital.create({
         hospital_name: 'City General Hospital',
+        hfr_id: 'HFR-2024-001',
         registration_number: 'HOSP-2024-001',
         email: 'hospital@example.com',
         password_hash: 'password123',
