@@ -15,8 +15,6 @@ function MedicalBills() {
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState('');
   const [uploadError, setUploadError] = useState('');
-  
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     if (!user || user.type !== 'medical_user') {
